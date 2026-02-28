@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Acceder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080d; --bg2:#0e0e16; --surface:#11111c; --surface2:#181825;
+  --border:#22223a; --border2:#2d2d4a;
+  --accent:#d4f53c; --accent-glow:rgba(212,245,60,0.18); --accent-dim:rgba(212,245,60,0.06);
+  --text:#eeeef8; --text2:#9898b8; --text3:#55556a;
+  --nm:#2ed573; --mp:#ff4757; --lp:#ffa502;
+  --nm-bg:rgba(46,213,115,0.08); --mp-bg:rgba(255,71,87,0.08);
+  --font-display:'Bebas Neue',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-body:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:1px solid var(--border);background:rgba(8,8,13,0.97);backdrop-filter:blur(24px);flex-shrink:0;}
+.logo{font-family:var(--font-display);font-size:1.8rem;letter-spacing:3px;cursor:pointer;}
+.logo .dot{color:var(--accent);}
+.nav-back{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);cursor:pointer;transition:color 0.15s;letter-spacing:0.5px;border:none;background:none;}
+.nav-back:hover{color:var(--text2);}
+
+/* LAYOUT */
+.auth-layout{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;}
+
+/* LEFT PANEL — branding */
+.auth-left{
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  padding:60px 56px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+.al-glow{position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(212,245,60,0.07) 0%,transparent 70%);pointer-events:none;}
+.al-glow2{position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(46,213,115,0.05) 0%,transparent 70%);pointer-events:none;}
+
+.al-tag{font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(212,245,60,0.25);padding:4px 12px;border-radius:3px;width:fit-content;margin-bottom:32px;}
+.al-headline{font-family:var(--font-display);font-size:4.5rem;line-height:0.92;letter-spacing:2px;margin-bottom:20px;}
+.al-headline .accent{color:var(--accent);}
+.al-sub{font-size:0.9rem;color:var(--text2);line-height:1.7;font-weight:300;max-width:360px;}
+
+.al-features{display:flex;flex-direction:column;gap:12px;margin-top:auto;padding-top:40px;}
+.al-feat{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.af-icon{font-size:1.1rem;flex-shrink:0;}
+.af-text{font-size:0.82rem;color:var(--text2);font-weight:300;line-height:1.4;}
+.af-text strong{color:var(--text);font-weight:600;}
+
+/* RIGHT PANEL — forms */
+.auth-right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+  overflow-y:auto;
+}
+
+.auth-box{width:100%;max-width:440px;}
+
+/* TABS */
+.auth-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:28px;}
+.auth-tab{flex:1;padding:10px;text-align:center;font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;background:none;color:var(--text3);transition:all 0.15s;}
+.auth-tab.active{background:var(--accent);color:#08080d;}
+.auth-tab:not(.active):hover{background:var(--surface);color:var(--text2);}
+
+/* PANELS */
+.auth-panel{display:none;}
+.auth-panel.active{display:block;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Social buttons */
+.social-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font-mono);font-size:0.75rem;font-weight:500;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;width:100%;}
+.social-btn:hover{border-color:var(--border2);background:var(--surface2);}
+.social-btn.google:hover{border-color:rgba(66,133,244,0.4);}
+.social-btn.apple:hover{border-color:rgba(255,255,255,0.2);}
+.sb-logo{width:18px;height:18px;flex-shrink:0;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider span{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;}
+
+/* Form elements */
+.form-group{margin-bottom:14px;}
+.fg-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.fg-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.82rem;outline:none;transition:border-color 0.15s;letter-spacing:0.3px;}
+.fg-input:focus{border-color:var(--accent);}
+.fg-input::placeholder{color:var(--text3);}
+.fg-input.error{border-color:var(--mp);}
+.fg-error{font-family:var(--font-mono);font-size:0.65rem;color:var(--mp);margin-top:5px;display:none;}
+.fg-error.show{display:block;}
+
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.input-icon-wrap{position:relative;}
+.input-icon-wrap .fg-input{padding-right:40px;}
+.input-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.8rem;padding:0;}
+.input-toggle:hover{color:var(--text2);}
+
+.forgot{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);text-align:right;margin-top:6px;cursor:pointer;letter-spacing:0.3px;transition:color 0.15s;}
+.forgot:hover{color:var(--accent);}
+
+/* Main button */
+.btn-main{width:100%;padding:13px;border:none;border-radius:7px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px;}
+.btn-main:hover{box-shadow:0 0 24px var(--accent-glow);transform:translateY(-1px);}
+.btn-main:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.auth-note{font-size:0.75rem;color:var(--text3);text-align:center;margin-top:16px;line-height:1.6;}
+.auth-note a{color:var(--text2);cursor:pointer;text-decoration:underline;transition:color 0.15s;}
+.auth-note a:hover{color:var(--accent);}
+
+/* ---- REGISTER STEPS ---- */
+.reg-progress{display:flex;gap:6px;margin-bottom:24px;}
+.rp-step{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background 0.3s;}
+.rp-step.done{background:var(--nm);}
+.rp-step.active{background:var(--accent);}
+
+.reg-step-title{font-family:var(--font-display);font-size:1.6rem;letter-spacing:1px;margin-bottom:4px;}
+.reg-step-sub{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:1px;margin-bottom:20px;}
+
+.reg-panel{display:none;}
+.reg-panel.active{display:block;animation:fadeIn 0.2s ease;}
+
+/* Account type selector */
+.type-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.type-opt{padding:16px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.type-opt:hover{border-color:var(--border2);background:var(--surface2);}
+.type-opt.selected{border-color:var(--accent);background:var(--accent-dim);}
+.to-icon{font-size:1.8rem;margin-bottom:8px;}
+.to-title{font-family:var(--font-display);font-size:1rem;letter-spacing:0.5px;margin-bottom:4px;}
+.to-desc{font-size:0.72rem;color:var(--text2);font-weight:300;line-height:1.4;}
+
+/* Age verification */
+.age-check{display:flex;align-items:flex-start;gap:10px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:10px;transition:all 0.15s;}
+.age-check:hover{border-color:var(--border2);}
+.age-check.selected{border-color:var(--accent);background:var(--accent-dim);}
+.ac-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;margin-top:1px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.age-check.selected .ac-radio{border-color:var(--accent);background:var(--accent);}
+.ac-radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#08080d;display:none;}
+.age-check.selected .ac-radio::after{display:block;}
+.ac-text{flex:1;}
+.ac-title{font-size:0.85rem;font-weight:600;margin-bottom:2px;}
+.ac-desc{font-size:0.75rem;color:var(--text2);font-weight:300;line-height:1.4;}
+
+.minor-warning{padding:12px 14px;background:rgba(255,165,2,0.07);border:1px solid rgba(255,165,2,0.2);border-radius:7px;font-size:0.78rem;color:var(--lp);line-height:1.5;margin-top:10px;display:none;}
+.minor-warning.show{display:block;}
+
+/* Step navigation */
+.reg-nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px;}
+.btn-back-sm{padding:10px 18px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.7rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-back-sm:hover{border-color:var(--border2);color:var(--text2);}
+.btn-next-sm{flex:1;padding:11px;border:none;border-radius:6px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-next-sm:hover{box-shadow:0 0 18px var(--accent-glow);}
+.btn-next-sm:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+
+/* Success */
+.auth-success{text-align:center;padding:20px 0;}
+.as-icon{font-size:3rem;margin-bottom:16px;}
+.as-title{font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:8px;}
+.as-sub{font-size:0.85rem;color:var(--text2);font-weight:300;line-height:1.6;margin-bottom:24px;}
+
+/* Terms */
+.terms-note{font-size:0.72rem;color:var(--text3);text-align:center;line-height:1.6;margin-top:14px;}
+.terms-note a{color:var(--text3);cursor:pointer;text-decoration:underline;}
+.terms-note a:hover{color:var(--text2);}
+
+/* Country select */
+select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2355556a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;}
+
+@media(max-width:800px){
+  .auth-layout{grid-template-columns:1fr;}
+  .auth-left{display:none;}
+  nav{padding:0 18px;}
+  .auth-right{padding:24px 18px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="window.location.href='pple-tcg.html'">PPLE<span class="dot">.</span>TCG</div>
+  <button class="nav-back" onclick="window.location.href='pple-tcg.html'">← Volver al mercado</button>
+</nav>
+
+<div class="auth-layout">
+
+  <!-- LEFT — Branding -->
+  <div class="auth-left">
+    <div class="al-glow"></div>
+    <div class="al-glow2"></div>
+    <div>
+      <div class="al-tag">Únete a la comunidad</div>
+      <div class="al-headline">TRADE<br><span class="accent">SMARTER.</span></div>
+      <div class="al-sub">La nueva infraestructura del mercado TCG. Compra y vende con precios reales, envíos integrados y verificación de autenticidad.</div>
+    </div>
+    <div class="al-features">
+      <div class="al-feat">
+        <div class="af-icon">📊</div>
+        <div class="af-text"><strong>Precios reales de Cardmarket</strong> actualizados constantemente en EUR.</div>
+      </div>
+      <div class="al-feat">
+        <div class="af-icon">🔍</div>
+        <div class="af-text"><strong>Verificación de autenticidad</strong> con pre-grading profesional.</div>
+      </div>
+      <div class="al-feat">
+        <div class="af-icon">📦</div>
+        <div class="af-text"><strong>Envío integrado</strong> con generación automática de etiquetas.</div>
+      </div>
+      <div class="al-feat">
+        <div class="af-icon">📷</div>
+        <div class="af-text"><strong>Escáner IA</strong> — identifica tu carta con una foto al instante.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — Auth -->
+  <div class="auth-right">
+    <div class="auth-box">
+
+      <!-- TABS -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Iniciar sesión</button>
+        <button class="auth-tab" onclick="switchTab('register')">Registrarse</button>
+      </div>
+
+      <!-- ===== LOGIN ===== -->
+      <div class="auth-panel active" id="panelLogin">
+        <div class="social-btns">
+          <button class="social-btn google" onclick="socialLogin('Google')">
+            <svg class="sb-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Continuar con Google
+          </button>
+          <button class="social-btn apple" onclick="socialLogin('Apple')">
+            <svg class="sb-logo" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Continuar con Apple
+          </button>
+        </div>
+
+        <div class="divider"><span>o con email</span></div>
+
+        <div class="form-group">
+          <label class="fg-label">Email</label>
+          <input class="fg-input" type="email" id="loginEmail" placeholder="tu@email.com">
+        </div>
+        <div class="form-group">
+          <label class="fg-label">Contraseña</label>
+          <div class="input-icon-wrap">
+            <input class="fg-input" type="password" id="loginPass" placeholder="••••••••">
+            <button class="input-toggle" onclick="togglePass('loginPass',this)">👁</button>
+          </div>
+          <div class="forgot">¿Olvidaste tu contraseña?</div>
+        </div>
+
+        <button class="btn-main" onclick="doLogin()">Entrar</button>
+
+        <div class="auth-note">
+          ¿No tienes cuenta? <a onclick="switchTab('register')">Regístrate gratis</a>
+        </div>
+      </div>
+
+      <!-- ===== REGISTER ===== -->
+      <div class="auth-panel" id="panelRegister">
+        <div class="reg-progress">
+          <div class="rp-step active" id="rps1"></div>
+          <div class="rp-step" id="rps2"></div>
+          <div class="rp-step" id="rps3"></div>
+          <div class="rp-step" id="rps4"></div>
+        </div>
+
+        <!-- Step R1 — Tipo de cuenta + social -->
+        <div class="reg-panel active" id="rp1">
+          <div class="reg-step-title">CREA TU CUENTA</div>
+          <div class="reg-step-sub">Paso 1 de 4 · Tipo de cuenta</div>
+
+          <div class="social-btns">
+            <button class="social-btn google" onclick="socialLogin('Google')">
+              <svg class="sb-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Registrarse con Google
+            </button>
+            <button class="social-btn apple" onclick="socialLogin('Apple')">
+              <svg class="sb-logo" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              Registrarse con Apple
+            </button>
+          </div>
+
+          <div class="divider"><span>o con email</span></div>
+
+          <div class="type-selector">
+            <div class="type-opt" id="typePart" onclick="selectType('particular');accountType='particular'">
+              <div class="to-icon">👤</div>
+              <div class="to-title">PARTICULAR</div>
+              <div class="to-desc">Coleccionista o vendedor individual</div>
+            </div>
+            <div class="type-opt" id="typeEmp" onclick="selectType('empresa');accountType='empresa'">
+              <div class="to-icon">🏪</div>
+              <div class="to-title">EMPRESA</div>
+              <div class="to-desc">Tienda, negocio o autónomo</div>
+            </div>
+          </div>
+
+          <div class="reg-nav">
+            <button class="btn-next-sm" id="btnR1" onclick="goRegStep(2)" disabled>Continuar →</button>
+          </div>
+          <div class="terms-note">Al registrarte aceptas los <a>Términos de uso</a> y la <a>Política de privacidad</a>.</div>
+        </div>
+
+        <!-- Step R2 — Datos personales / empresa -->
+        <div class="reg-panel" id="rp2">
+          <div class="reg-step-title" id="r2Title">DATOS PERSONALES</div>
+          <div class="reg-step-sub" id="r2Sub">Paso 2 de 4 · Información básica</div>
+
+          <!-- Particular fields -->
+          <div id="fieldsParticular">
+            <div class="fg-row">
+              <div class="form-group">
+                <label class="fg-label">Nombre</label>
+                <input class="fg-input" type="text" id="firstName" placeholder="Juan">
+              </div>
+              <div class="form-group">
+                <label class="fg-label">Apellidos</label>
+                <input class="fg-input" type="text" id="lastName" placeholder="García López">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Nombre de usuario</label>
+              <input class="fg-input" type="text" id="username" placeholder="trainer_juan" oninput="checkUsername(this)">
+              <div class="fg-error" id="usernameError">El nombre de usuario ya está en uso</div>
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Email</label>
+              <input class="fg-input" type="email" id="regEmail" placeholder="tu@email.com">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Contraseña</label>
+              <div class="input-icon-wrap">
+                <input class="fg-input" type="password" id="regPass" placeholder="Mínimo 8 caracteres" oninput="checkPassStrength(this)">
+                <button class="input-toggle" onclick="togglePass('regPass',this)">👁</button>
+              </div>
+              <div id="passStrength" style="display:flex;gap:4px;margin-top:6px"></div>
+            </div>
+          </div>
+
+          <!-- Empresa fields -->
+          <div id="fieldsEmpresa" style="display:none">
+            <div class="form-group">
+              <label class="fg-label">Razón social</label>
+              <input class="fg-input" type="text" id="companyName" placeholder="TCG Shop S.L.">
+            </div>
+            <div class="fg-row">
+              <div class="form-group">
+                <label class="fg-label">CIF / NIF</label>
+                <input class="fg-input" type="text" id="companyCIF" placeholder="B12345678">
+              </div>
+              <div class="form-group">
+                <label class="fg-label">Tipo</label>
+                <select class="fg-input" id="companyType">
+                  <option value="">Seleccionar...</option>
+                  <option>S.L.</option>
+                  <option>S.A.</option>
+                  <option>Autónomo</option>
+                  <option>S.C.</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Nombre comercial</label>
+              <input class="fg-input" type="text" id="tradeName" placeholder="Nombre que verán los compradores">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Email de contacto</label>
+              <input class="fg-input" type="email" id="companyEmail" placeholder="tienda@email.com">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Teléfono</label>
+              <input class="fg-input" type="tel" id="companyPhone" placeholder="+34 600 000 000">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Contraseña</label>
+              <div class="input-icon-wrap">
+                <input class="fg-input" type="password" id="companyPass" placeholder="Mínimo 8 caracteres">
+                <button class="input-toggle" onclick="togglePass('companyPass',this)">👁</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="reg-nav">
+            <button class="btn-back-sm" onclick="goRegStep(1)">←</button>
+            <button class="btn-next-sm" onclick="goRegStep(3);document.getElementById('btnFinish').disabled=false">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- Step R3 — Dirección + edad -->
+        <div class="reg-panel" id="rp3">
+          <div class="reg-step-title">DIRECCIÓN DE ENVÍO</div>
+          <div class="reg-step-sub">Paso 3 de 4 · Ubicación y edad</div>
+
+          <div class="form-group">
+            <label class="fg-label">Calle y número</label>
+            <input class="fg-input" type="text" id="addrStreet" placeholder="Calle Mayor 42, 3ºA">
+          </div>
+          <div class="fg-row">
+            <div class="form-group">
+              <label class="fg-label">Código postal</label>
+              <input class="fg-input" type="text" id="addrCP" placeholder="28001" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Ciudad</label>
+              <input class="fg-input" type="text" id="addrCity" placeholder="Madrid">
+            </div>
+          </div>
+          <div class="fg-row">
+            <div class="form-group">
+              <label class="fg-label">Provincia</label>
+              <input class="fg-input" type="text" id="addrProvince" placeholder="Madrid">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">País</label>
+              <select class="fg-input" id="addrCountry">
+                <option>España</option>
+                <option>Portugal</option>
+                <option>Francia</option>
+                <option>Alemania</option>
+                <option>Italia</option>
+                <option>Países Bajos</option>
+                <option>Bélgica</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:6px;margin-bottom:6px">
+            <div class="fg-label" style="margin-bottom:10px">Verificación de edad</div>
+            <div class="age-check" id="age18" onclick="selectAge('adult')">
+              <div class="ac-radio"></div>
+              <div class="ac-text">
+                <div class="ac-title">Tengo 18 años o más</div>
+                <div class="ac-desc">Acceso completo a todas las funciones de la plataforma.</div>
+              </div>
+            </div>
+            <div class="age-check" id="ageMinor" onclick="selectAge('minor')">
+              <div class="ac-radio"></div>
+              <div class="ac-text">
+                <div class="ac-title">Tengo menos de 18 años</div>
+                <div class="ac-desc">Necesitarás autorización de un tutor legal para operar.</div>
+              </div>
+            </div>
+            <div class="minor-warning" id="minorWarning">
+              ⚠️ Al ser menor de edad, tu tutor legal deberá firmar una autorización que te enviaremos por email antes de poder publicar o comprar cartas.
+            </div>
+          </div>
+
+          <div class="reg-nav">
+            <button class="btn-back-sm" onclick="goRegStep(2)">←</button>
+            <button class="btn-next-sm" onclick="goRegStep(4);document.getElementById('btnFinish').disabled=false">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- Step R4 — Datos fiscales empresa extra / confirmación -->
+        <div class="reg-panel" id="rp4">
+          <div class="reg-step-title" id="r4Title">CASI LISTO</div>
+          <div class="reg-step-sub" id="r4Sub">Paso 4 de 4 · Confirmar registro</div>
+
+          <!-- Extra empresa fiscal data -->
+          <div id="empresaFiscal" style="display:none">
+            <div class="form-group">
+              <label class="fg-label">Dirección fiscal (si difiere)</label>
+              <input class="fg-input" type="text" id="fiscalAddr" placeholder="Igual que dirección de envío si coincide">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">IBAN (para cobros)</label>
+              <input class="fg-input" type="text" id="companyIBAN" placeholder="ES00 0000 0000 0000 0000 0000">
+            </div>
+            <div class="form-group">
+              <label class="fg-label">Número de registro mercantil (opcional)</label>
+              <input class="fg-input" type="text" id="regMercantil" placeholder="Tomo X, Folio X, Hoja M-XXXXX">
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div id="regSummary" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Resumen del registro</div>
+            <div id="summaryContent" style="display:flex;flex-direction:column;gap:7px;font-family:var(--font-mono);font-size:0.72rem;"></div>
+          </div>
+
+          <div class="form-group" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;">
+            <input type="checkbox" id="acceptTerms" style="margin-top:3px;accent-color:var(--accent);width:15px;height:15px;flex-shrink:0;cursor:pointer;">
+            <label for="acceptTerms" style="font-size:0.78rem;color:var(--text2);line-height:1.5;cursor:pointer;">
+              Acepto los <a style="color:var(--accent);cursor:pointer">Términos y Condiciones</a>, la <a style="color:var(--accent);cursor:pointer">Política de Privacidad</a> y la <a style="color:var(--accent);cursor:pointer">Política de Cookies</a> de Pple.tcg
+            </label>
+          </div>
+
+          <div class="reg-nav">
+            <button class="btn-back-sm" onclick="goRegStep(3);document.getElementById('btnFinish').disabled=false">←</button>
+            <button class="btn-next-sm" id="btnFinish" onclick="accountType==='empresa'?doRegisterEmpresa():doRegister()" disabled>Crear cuenta ✓</button>
+          </div>
+        </div>
+
+        <!-- Success -->
+        <div class="reg-panel" id="rpSuccess">
+          <div class="auth-success">
+            <div class="as-icon">🎉</div>
+            <div class="as-title">¡BIENVENIDO!</div>
+            <div class="as-sub">Tu cuenta ha sido creada correctamente.<br>Ya puedes empezar a comprar y vender cartas.</div>
+            <button class="btn-main" onclick="window.location.href='pple-tcg.html'">Ir al mercado →</button>
+          </div>
+        </div>
+
+      </div>
+      <!-- end panelRegister -->
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+const SUPABASE_URL = 'https://iijreiuecodmqlcvhapp.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ---- STATE ----
+let accountType = null
+
+// ---- CHECK SESSION — si ya estás logueado, al marketplace ----
+const { data: { session } } = await supabase.auth.getSession()
+if (session) window.location.href = 'pple-tcg.html'
+
+// ---- TABS ----
+window.switchTab = function(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')))
+  document.getElementById('panelLogin').classList.toggle('hidden', tab !== 'login')
+  document.getElementById('panelRegister').classList.toggle('hidden', tab !== 'register')
+}
+
+// ---- ACCOUNT TYPE ----
+window.selectType = function(type) {
+  accountType = type
+  // show correct form
+  document.getElementById('formParticular').style.display = type === 'particular' ? 'block' : 'none'
+  document.getElementById('formEmpresa').style.display    = type === 'empresa' ? 'block' : 'none'
+}
+
+// ---- STEPS (visual only, keep existing) ----
+window.goRegStep = function(step) {
+  document.querySelectorAll('.reg-step').forEach((s,i) =>
+    s.style.display = i === step-1 ? 'block' : 'none')
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.toggle('active', i === step-1)
+    d.classList.toggle('done', i < step-1)
+  })
+}
+
+// ---- LOGIN ----
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim()
+  const pass  = document.getElementById('loginPass').value
+  const btn   = document.querySelector('[onclick="doLogin()"]')
+
+  if (!email || !pass) { showAuthError('loginError', 'Rellena email y contraseña'); return }
+
+  btn.textContent = 'Entrando...'
+  btn.disabled = true
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
+
+  if (error) {
+    showAuthError('loginError', 'Email o contraseña incorrectos')
+    btn.textContent = 'Entrar →'
+    btn.disabled = false
+  } else {
+    btn.textContent = '✓ Redirigiendo...'
+    setTimeout(() => window.location.href = 'pple-tcg.html', 800)
+  }
+}
+
+// ---- REGISTER PARTICULAR ----
+window.btnFinish = undefined
+window.doRegister = async function() {
+  const username  = document.getElementById('username').value.trim()
+  const firstName = document.getElementById('firstName').value.trim()
+  const lastName  = document.getElementById('lastName').value.trim()
+  const email     = document.getElementById('regEmail').value.trim()
+  const pass      = document.getElementById('regPass').value
+  const terms     = document.getElementById('acceptTerms')?.checked
+
+  if (!username || !firstName || !email || !pass) {
+    showAuthError('regError', 'Rellena todos los campos obligatorios'); return
+  }
+  if (pass.length < 6) { showAuthError('regError', 'Contraseña mínimo 6 caracteres'); return }
+  if (terms === false)  { showAuthError('regError', 'Acepta los términos para continuar'); return }
+
+  const btn = document.getElementById('btnFinish')
+  btn.textContent = 'Creando cuenta...'
+  btn.disabled = true
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password: pass,
+    options: {
+      data: {
+        username,
+        full_name: `${firstName} ${lastName}`.trim(),
+        account_type: 'particular'
+      }
+    }
+  })
+
+  if (error) {
+    showAuthError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
+    btn.textContent = 'Crear cuenta'
+    btn.disabled = false
+  } else {
+    showSuccess(email)
+  }
+}
+
+// ---- REGISTER EMPRESA ----
+window.doRegisterEmpresa = async function() {
+  const email    = document.getElementById('companyEmail').value.trim()
+  const pass     = document.getElementById('companyPass').value
+  const name     = document.getElementById('companyName').value.trim()
+  const cif      = document.getElementById('companyCIF').value.trim()
+
+  if (!email || !pass || !name || !cif) {
+    showAuthError('regError', 'Rellena todos los campos obligatorios'); return
+  }
+  if (pass.length < 6) { showAuthError('regError', 'Contraseña mínimo 6 caracteres'); return }
+
+  const btn = document.getElementById('btnFinish')
+  btn.textContent = 'Creando cuenta...'
+  btn.disabled = true
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password: pass,
+    options: {
+      data: {
+        username: cif,
+        full_name: name,
+        account_type: 'empresa'
+      }
+    }
+  })
+
+  if (error) {
+    showAuthError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
+    btn.textContent = 'Crear cuenta'
+    btn.disabled = false
+  } else {
+    showSuccess(email)
+  }
+}
+
+// ---- HELPERS ----
+function showAuthError(id, msg) {
+  let el = document.getElementById(id)
+  if (!el) {
+    el = document.createElement('div')
+    el.id = id
+    el.style.cssText = 'color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-top:10px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;'
+    document.getElementById('panelRegister')?.appendChild(el) ||
+    document.getElementById('panelLogin')?.appendChild(el)
+  }
+  el.textContent = msg
+  el.style.display = 'block'
+}
+
+function showSuccess(email) {
+  const panel = document.getElementById('panelRegister')
+  panel.innerHTML = `
+    <div style="text-align:center;padding:48px 20px;">
+      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+      <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:12px;color:var(--text)">¡CUENTA CREADA!</div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);line-height:1.9;letter-spacing:0.5px;">
+        Hemos enviado un email de confirmación a<br>
+        <span style="color:var(--accent)">${email}</span><br><br>
+        Confírmalo y ya podrás acceder.
+      </div>
+    </div>`
+}
+
+// ---- SOCIAL (placeholder) ----
+window.socialLogin = function(provider) {
+  alert(`Login con ${provider} — disponible próximamente`)
+}
+
+// ---- TOGGLE PASSWORD ----
+window.togglePass = function(id, btn) {
+  const input = document.getElementById(id)
+  if (!input) return
+  input.type = input.type === 'password' ? 'text' : 'password'
+  btn.textContent = input.type === 'password' ? '👁' : '🙈'
+}
+
+// ---- ENTER KEY ----
+document.getElementById('loginPass')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doLogin()
+})
+</script>
+</body>
+</html>
