@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Vender</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080d; --bg2:#0e0e16; --surface:#11111c; --surface2:#181825;
+  --border:#22223a; --border2:#2d2d4a;
+  --accent:#d4f53c; --accent-glow:rgba(212,245,60,0.15); --accent-dim:rgba(212,245,60,0.06);
+  --red:#ff4757; --green:#2ed573; --yellow:#ffa502;
+  --text:#eeeef8; --text2:#9898b8; --text3:#55556a;
+  --nm:#2ed573; --lp:#ffa502; --mp:#ff4757;
+  --nm-bg:rgba(46,213,115,0.08); --lp-bg:rgba(255,165,2,0.08); --mp-bg:rgba(255,71,87,0.08);
+  --font-display:'Bebas Neue',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-body:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,13,0.95);backdrop-filter:blur(24px);z-index:100;}
+.logo{font-family:var(--font-display);font-size:1.8rem;letter-spacing:3px;color:var(--text);line-height:1;cursor:pointer;}
+.logo .dot{color:var(--accent);}
+.nav-pills{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.nav-tab{padding:7px 22px;font-family:var(--font-mono);font-size:0.72rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--text2);cursor:pointer;border:none;background:none;border-right:1px solid var(--border);transition:all 0.15s;}
+.nav-tab:last-child{border-right:none;}
+.nav-tab:hover{background:var(--surface);color:var(--text);}
+.nav-tab.active{background:var(--accent);color:#08080d;font-weight:700;}
+.nav-right{display:flex;gap:10px;align-items:center;}
+.btn-outline{padding:7px 16px;border:1px solid var(--border2);border-radius:5px;background:none;color:var(--text2);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-accent{padding:7px 18px;border:none;border-radius:5px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.btn-accent:hover{box-shadow:0 0 20px var(--accent-glow);transform:translateY(-1px);}
+.btn-accent:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* PAGE HEADER */
+.page-header{padding:32px 40px 0;border-bottom:1px solid var(--border);background:var(--bg2);}
+.ph-eyebrow{font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.ph-title{font-family:var(--font-display);font-size:3rem;letter-spacing:2px;margin-bottom:6px;}
+.ph-sub{font-size:0.88rem;color:var(--text2);font-weight:300;margin-bottom:24px;}
+.ph-steps{display:flex;gap:0;margin-bottom:-1px;}
+.step-tab{padding:10px 24px;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--text3);border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;cursor:default;display:flex;align-items:center;gap:8px;}
+.step-tab.done{color:var(--nm);}
+.step-tab.active{background:var(--bg);border-color:var(--border);color:var(--text);border-bottom:1px solid var(--bg);}
+.step-num{width:18px;height:18px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;}
+.step-tab.active .step-num{background:var(--accent);color:#08080d;}
+.step-tab.done .step-num{background:var(--nm);color:#08080d;}
+
+/* MAIN */
+.main{max-width:900px;margin:0 auto;padding:32px 40px 80px;}
+
+/* STEP PANELS */
+.step-panel{display:none;}
+.step-panel.active{display:block;animation:fadeIn 0.25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* STEP 1 — SCAN */
+.scan-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px;}
+.scan-opt{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;cursor:pointer;transition:all 0.2s;text-align:center;}
+.scan-opt:hover{border-color:var(--border2);background:var(--surface2);}
+.scan-opt.selected{border-color:var(--accent);background:var(--accent-dim);}
+.so-icon{font-size:2.5rem;margin-bottom:12px;}
+.so-title{font-family:var(--font-display);font-size:1.2rem;letter-spacing:1px;margin-bottom:6px;}
+.so-desc{font-size:0.8rem;color:var(--text2);line-height:1.5;font-weight:300;}
+.so-badge{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:3px;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:1px;text-transform:uppercase;}
+.badge-ai{background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);color:var(--accent);}
+.badge-manual{background:var(--surface2);border:1px solid var(--border);color:var(--text3);}
+
+/* SCAN AREA */
+.scan-area{display:none;}
+.scan-area.active{display:block;}
+
+.camera-zone{
+  border:2px dashed var(--border2);
+  border-radius:12px;
+  background:var(--surface);
+  padding:40px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.2s;
+  cursor:pointer;
+}
+.camera-zone:hover,.camera-zone.dragover{border-color:var(--accent);background:var(--accent-dim);}
+.camera-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.cz-icon{font-size:3rem;margin-bottom:14px;}
+.cz-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:1px;margin-bottom:6px;}
+.cz-sub{font-size:0.82rem;color:var(--text2);font-weight:300;}
+.cz-hint{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:1px;margin-top:12px;}
+
+/* Preview + AI result */
+.scan-result{display:none;margin-top:20px;}
+.scan-result.active{display:grid;grid-template-columns:200px 1fr;gap:20px;}
+.sr-img-wrap{border-radius:10px;overflow:hidden;border:1px solid var(--border);aspect-ratio:3/4;background:var(--surface);display:flex;align-items:center;justify-content:center;}
+.sr-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.sr-info{}
+.sr-status{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.75rem;}
+.sr-analyzing{background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);color:var(--accent);}
+.sr-found{background:var(--nm-bg);border:1px solid rgba(46,213,115,0.2);color:var(--nm);}
+.sr-notfound{background:var(--mp-bg);border:1px solid rgba(255,71,87,0.2);color:var(--mp);}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.sr-card-info{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
+.sci-name{font-family:var(--font-display);font-size:1.5rem;letter-spacing:1px;margin-bottom:4px;}
+.sci-set{font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);letter-spacing:0.5px;margin-bottom:12px;}
+.sci-price-row{display:flex;gap:10px;align-items:baseline;}
+.sci-price{font-family:var(--font-display);font-size:1.8rem;letter-spacing:1px;color:var(--accent);}
+.sci-label{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:1px;}
+
+.sr-actions{display:flex;gap:10px;}
+.btn-portfolio{padding:10px 20px;border:1px solid var(--border2);border-radius:6px;background:none;color:var(--text2);font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-portfolio:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sell-now{padding:10px 20px;border:none;border-radius:6px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-sell-now:hover{box-shadow:0 0 16px var(--accent-glow);}
+
+/* Manual search */
+.manual-search{margin-top:20px;}
+.ms-label{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.ms-row{display:flex;gap:8px;}
+.ms-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 16px;color:var(--text);font-family:var(--font-mono);font-size:0.82rem;outline:none;transition:border-color 0.15s;letter-spacing:0.3px;}
+.ms-input:focus{border-color:var(--accent);}
+.ms-input::placeholder{color:var(--text3);}
+.ms-results{margin-top:12px;display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;}
+.ms-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;}
+.ms-item:hover{border-color:var(--accent);background:var(--accent-dim);}
+.ms-thumb{width:36px;height:50px;object-fit:contain;border-radius:4px;background:var(--surface2);}
+.ms-item-info{flex:1;}
+.ms-item-name{font-size:0.85rem;font-weight:600;margin-bottom:2px;}
+.ms-item-set{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);}
+.ms-item-price{font-family:var(--font-display);font-size:1rem;letter-spacing:0.5px;color:var(--accent);}
+
+/* STEP 2 — LISTING FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.form-group{display:flex;flex-direction:column;gap:7px;}
+.form-group.full{grid-column:1/-1;}
+.fg-label{font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;}
+.fg-input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.85rem;outline:none;transition:border-color 0.15s;letter-spacing:0.3px;}
+.fg-input:focus{border-color:var(--accent);}
+.fg-input::placeholder{color:var(--text3);}
+.fg-textarea{resize:vertical;min-height:80px;font-family:var(--font-body);font-size:0.85rem;line-height:1.5;}
+
+/* Selected card preview in step 2 */
+.selected-card-bar{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:24px;}
+.scb-img{width:44px;height:62px;object-fit:contain;border-radius:5px;background:var(--surface2);}
+.scb-info{flex:1;}
+.scb-name{font-family:var(--font-display);font-size:1.1rem;letter-spacing:0.5px;}
+.scb-set{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);margin-top:2px;}
+.scb-price{font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.5px;color:var(--accent);}
+.scb-price-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);}
+.btn-change{padding:6px 12px;border:1px solid var(--border);border-radius:5px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.65rem;cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;}
+.btn-change:hover{border-color:var(--border2);color:var(--text2);}
+
+/* Condition selector */
+.cond-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cond-opt{padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.cond-opt:hover{border-color:var(--border2);}
+.cond-opt.selected-nm{border-color:var(--nm);background:var(--nm-bg);}
+.cond-opt.selected-lp{border-color:var(--lp);background:var(--lp-bg);}
+.cond-opt.selected-mp{border-color:var(--mp);background:var(--mp-bg);}
+.co-badge{font-family:var(--font-mono);font-size:0.8rem;font-weight:700;letter-spacing:1px;margin-bottom:5px;}
+.co-nm .co-badge{color:var(--nm);}
+.co-lp .co-badge{color:var(--lp);}
+.co-mp .co-badge{color:var(--mp);}
+.co-desc{font-size:0.72rem;color:var(--text2);line-height:1.4;}
+
+/* Price input with suggestion */
+.price-input-wrap{position:relative;}
+.price-input-wrap .fg-input{padding-left:28px;font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;}
+.price-euro{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:var(--font-display);font-size:1.1rem;color:var(--text3);pointer-events:none;}
+.price-suggestion{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);margin-top:5px;letter-spacing:0.3px;}
+.price-suggestion span{color:var(--accent);cursor:pointer;text-decoration:underline;}
+
+/* Shipping selector */
+.shipping-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.ship-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;}
+.ship-opt:hover{border-color:var(--border2);}
+.ship-opt.selected{border-color:var(--accent);background:var(--accent-dim);}
+.ship-icon{font-size:1.3rem;flex-shrink:0;}
+.ship-info{}
+.ship-name{font-size:0.82rem;font-weight:600;margin-bottom:1px;}
+.ship-price{font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);}
+
+/* Photos upload */
+.photos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.photo-slot{aspect-ratio:1;border:1.5px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;background:var(--surface);}
+.photo-slot:hover{border-color:var(--accent);}
+.photo-slot.filled{border-style:solid;border-color:var(--border2);}
+.photo-slot input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-slot img{width:100%;height:100%;object-fit:cover;border-radius:7px;}
+.ps-icon{font-size:1.3rem;color:var(--text3);margin-bottom:4px;}
+.ps-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:1px;}
+.photo-slot.main-slot{border-color:var(--border2);}
+.photo-slot.main-slot::after{content:'PRINCIPAL';position:absolute;bottom:0;left:0;right:0;background:rgba(212,245,60,0.85);color:#08080d;font-family:var(--font-mono);font-size:0.55rem;font-weight:700;letter-spacing:1px;text-align:center;padding:2px;}
+
+/* STEP 3 — PREVIEW */
+.preview-layout{display:grid;grid-template-columns:240px 1fr;gap:24px;}
+.preview-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.5);}
+.preview-card-img{width:100%;height:190px;background:linear-gradient(135deg,#13132a,#1a1a35,#131328);display:flex;align-items:center;justify-content:center;font-size:3rem;overflow:hidden;}
+.preview-card-img img{width:100%;height:100%;object-fit:contain;padding:6px;}
+.preview-card-body{padding:14px;}
+.pcb-name{font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;margin-bottom:2px;}
+.pcb-set{font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);margin-bottom:10px;}
+.unverified-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,165,2,0.1);border:1px solid rgba(255,165,2,0.25);border-radius:4px;padding:3px 9px;font-family:var(--font-mono);font-size:0.62rem;color:var(--lp);letter-spacing:0.5px;margin-bottom:10px;}
+.pcb-price{font-family:var(--font-display);font-size:1.8rem;letter-spacing:1px;color:var(--accent);}
+.pcb-ship{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);margin-top:4px;}
+
+.preview-details{}
+.pd-section{margin-bottom:20px;}
+.pds-title{font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.pds-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+.pds-row:last-child{border-bottom:none;}
+.pdr-label{font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);}
+.pdr-val{font-family:var(--font-mono);font-size:0.72rem;font-weight:500;}
+.pdr-val.accent{color:var(--accent);}
+.pdr-val.green{color:var(--nm);}
+
+
+
+.verify-banner{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:8px;margin-top:16px;}
+.vb-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
+.vb-title{font-size:0.82rem;font-weight:600;margin-bottom:3px;color:var(--lp);}
+.vb-desc{font-size:0.78rem;color:var(--text2);line-height:1.5;font-weight:300;}
+.btn-verify{margin-top:8px;padding:7px 14px;border:1px solid var(--lp);border-radius:5px;background:none;color:var(--lp);font-family:var(--font-mono);font-size:0.68rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-verify:hover{background:var(--lp-bg);}
+
+/* Nav buttons */
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);}
+.btn-back{padding:10px 20px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text2);font-family:var(--font-mono);font-size:0.72rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-back:hover{border-color:var(--border2);color:var(--text);}
+.btn-next{padding:11px 28px;border:none;border-radius:6px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-next:hover{box-shadow:0 0 20px var(--accent-glow);transform:translateY(-1px);}
+.btn-next:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* Success screen */
+.success-screen{display:none;text-align:center;padding:60px 20px;}
+.success-screen.active{display:block;animation:fadeIn 0.4s ease;}
+.ss-icon{font-size:4rem;margin-bottom:20px;}
+.ss-title{font-family:var(--font-display);font-size:3rem;letter-spacing:2px;margin-bottom:10px;}
+.ss-sub{font-size:0.92rem;color:var(--text2);font-weight:300;margin-bottom:32px;line-height:1.6;}
+.ss-actions{display:flex;gap:12px;justify-content:center;}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.divider span{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+
+@media(max-width:700px){
+  nav{padding:0 18px;}
+  .nav-pills{display:none;}
+  .page-header{padding:24px 18px 0;}
+  .main{padding:24px 18px 60px;}
+  .scan-options{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .preview-layout{grid-template-columns:1fr;}
+  .photos-grid{grid-template-columns:repeat(3,1fr);}
+  .shipping-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="window.location.href='pple-tcg.html'">PPLE<span class="dot">.</span>TCG</div>
+  <div class="nav-pills">
+    <button class="nav-tab" onclick="window.location.href='pple-tcg.html'">Mercado</button>
+    <button class="nav-tab active">Vender</button>
+    <button class="nav-tab">Verificación</button>
+    <button class="nav-tab">Portfolio</button>
+  </div>
+  <div class="nav-right">
+    <button class="btn-outline">Entrar</button>
+    <button class="btn-accent">Registrarse</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="ph-eyebrow">Marketplace · Pokémon TCG</div>
+  <div class="ph-title">PUBLICAR CARTA</div>
+  <div class="ph-sub">Escanea tu carta o búscala manualmente, fija tu precio y empieza a vender.</div>
+  <div class="ph-steps">
+    <div class="step-tab active" id="stab1"><div class="step-num">1</div>Identificar carta</div>
+    <div class="step-tab" id="stab2"><div class="step-num">2</div>Detalles del anuncio</div>
+    <div class="step-tab" id="stab3"><div class="step-num">3</div>Confirmar y publicar</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1 -->
+  <div class="step-panel active" id="step1">
+    <div class="scan-options">
+      <div class="scan-opt" id="optScan" onclick="selectScanMethod('scan')">
+        <div class="so-icon">📷</div>
+        <div class="so-title">ESCANEAR CARTA</div>
+        <div class="so-desc">Sube una foto de tu carta y la IA la identificará automáticamente con nombre, colección y precio de mercado.</div>
+        <div class="so-badge badge-ai">✦ IA · Claude Vision</div>
+      </div>
+      <div class="scan-opt" id="optManual" onclick="selectScanMethod('manual')">
+        <div class="so-icon">🔍</div>
+        <div class="so-title">BUSCAR MANUALMENTE</div>
+        <div class="so-desc">Escribe el nombre de la carta o navega por colección para encontrarla en el catálogo.</div>
+        <div class="so-badge badge-manual">Búsqueda manual</div>
+      </div>
+    </div>
+
+    <!-- SCAN METHOD -->
+    <div class="scan-area" id="scanArea">
+      <div class="camera-zone" id="cameraZone">
+        <input type="file" accept="image/*" capture="environment" id="cardPhoto" onchange="handlePhoto(this)">
+        <div class="cz-icon">📸</div>
+        <div class="cz-title">SUBE O ARRASTRA TU CARTA</div>
+        <div class="cz-sub">Captura con la cámara del móvil o sube una foto desde la galería</div>
+        <div class="cz-hint">JPG · PNG · WEBP · Máx. 10MB</div>
+      </div>
+
+      <div class="scan-result" id="scanResult">
+        <div class="sr-img-wrap">
+          <img id="cardPreviewImg" src="" alt="">
+        </div>
+        <div class="sr-info">
+          <div class="sr-status sr-analyzing" id="srStatus">
+            <span class="spin">⟳</span> Analizando carta con IA...
+          </div>
+          <div class="sr-card-info" id="srCardInfo" style="display:none">
+            <div class="sci-name" id="srName">—</div>
+            <div class="sci-set" id="srSet">—</div>
+            <div class="sci-price-row">
+              <div>
+                <div class="sci-label">PRECIO CARDMARKET</div>
+                <div class="sci-price" id="srPrice">—</div>
+              </div>
+            </div>
+          </div>
+          <div id="srActions" class="sr-actions" style="display:none">
+            <button class="btn-portfolio" onclick="addToPortfolio()">+ Portfolio</button>
+            <button class="btn-sell-now" onclick="goToStep2()">Poner a la venta →</button>
+          </div>
+          <div id="srError" style="display:none;padding:12px;background:var(--mp-bg);border:1px solid rgba(255,71,87,0.2);border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;color:var(--mp);">
+            ⚠ No se pudo identificar la carta. Intenta con una foto más nítida o usa la búsqueda manual.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANUAL METHOD -->
+    <div class="scan-area" id="manualArea">
+      <div class="manual-search">
+        <div class="ms-label">Nombre de la carta</div>
+        <div class="ms-row">
+          <input class="ms-input" type="text" placeholder="Ej: Charizard ex, Pikachu, Mewtwo..." id="manualSearch" oninput="searchCards(this.value)">
+        </div>
+        <div class="ms-results" id="manualResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-panel" id="step2">
+    <div class="selected-card-bar" id="selectedCardBar">
+      <img class="scb-img" id="scbImg" src="" alt="">
+      <div class="scb-info">
+        <div class="scb-name" id="scbName">—</div>
+        <div class="scb-set" id="scbSet">—</div>
+      </div>
+      <div>
+        <div class="scb-price-label">PRECIO MERCADO</div>
+        <div class="scb-price" id="scbPrice">—</div>
+      </div>
+      <button class="btn-change" onclick="goToStep1()">Cambiar</button>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- CONDITION -->
+      <div class="form-group full">
+        <div class="fg-label">Estado de la carta</div>
+        <div class="cond-selector">
+          <div class="cond-opt co-nm" onclick="selectCond('NM',this)">
+            <div class="co-badge">NM</div>
+            <div class="co-desc">Near Mint — Sin marcas visibles. Como nueva.</div>
+          </div>
+          <div class="cond-opt co-lp" onclick="selectCond('LP',this)">
+            <div class="co-badge">LP</div>
+            <div class="co-desc">Lightly Played — Alguna marca leve o arañazo menor.</div>
+          </div>
+          <div class="cond-opt co-mp" onclick="selectCond('MP',this)">
+            <div class="co-badge">MP</div>
+            <div class="co-desc">Moderately Played — Desgaste visible, dobleces leves.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRICE -->
+      <div class="form-group">
+        <div class="fg-label">Tu precio de venta</div>
+        <div class="price-input-wrap">
+          <span class="price-euro">€</span>
+          <input class="fg-input" type="number" step="0.01" min="0.01" id="sellPrice" placeholder="0.00" oninput="validateStep2()">
+        </div>
+        <div class="price-suggestion" id="priceSuggestion">Cardmarket: — · <span onclick="useSuggestedPrice()">Usar precio sugerido</span></div>
+      </div>
+
+      <!-- PHOTOS -->
+      <div class="form-group">
+        <div class="fg-label">Fotos de tu carta (obligatorio)</div>
+        <div class="photos-grid">
+          <div class="photo-slot main-slot" id="ps0" onclick="triggerPhoto(0)">
+            <input type="file" accept="image/*" id="pf0" onchange="handleSlotPhoto(0,this)" style="display:none">
+            <div class="ps-icon">📷</div>
+            <div class="ps-label">Principal</div>
+          </div>
+          <div class="photo-slot" id="ps1" onclick="triggerPhoto(1)">
+            <input type="file" accept="image/*" id="pf1" onchange="handleSlotPhoto(1,this)" style="display:none">
+            <div class="ps-icon">+</div>
+          </div>
+          <div class="photo-slot" id="ps2" onclick="triggerPhoto(2)">
+            <input type="file" accept="image/*" id="pf2" onchange="handleSlotPhoto(2,this)" style="display:none">
+            <div class="ps-icon">+</div>
+          </div>
+          <div class="photo-slot" id="ps3" onclick="triggerPhoto(3)">
+            <input type="file" accept="image/*" id="pf3" onchange="handleSlotPhoto(3,this)" style="display:none">
+            <div class="ps-icon">+</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHIPPING -->
+      <div class="form-group full">
+        <div class="fg-label">Tipo de envío</div>
+        <div class="shipping-grid">
+          <div class="ship-opt" onclick="selectShipping('letter',this)">
+            <div class="ship-icon">✉️</div>
+            <div class="ship-info">
+              <div class="ship-name">Carta certificada</div>
+              <div class="ship-price">€1.80 · Solo cartas sueltas · hasta 50g</div>
+            </div>
+          </div>
+          <div class="ship-opt" onclick="selectShipping('small',this)">
+            <div class="ship-icon">📦</div>
+            <div class="ship-info">
+              <div class="ship-name">Paquete pequeño</div>
+              <div class="ship-price">€3.50 · hasta 500g · con seguimiento</div>
+            </div>
+          </div>
+          <div class="ship-opt" onclick="selectShipping('medium',this)">
+            <div class="ship-icon">🗃️</div>
+            <div class="ship-info">
+              <div class="ship-name">Paquete mediano</div>
+              <div class="ship-price">€5.90 · hasta 2kg · sobres/displays</div>
+            </div>
+          </div>
+          <div class="ship-opt" onclick="selectShipping('large',this)">
+            <div class="ship-icon">📫</div>
+            <div class="ship-info">
+              <div class="ship-name">Paquete grande</div>
+              <div class="ship-price">€9.90 · hasta 10kg · cajas selladas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="form-group full">
+        <div class="fg-label">Notas adicionales (opcional)</div>
+        <textarea class="fg-input fg-textarea" id="sellNotes" placeholder="Describe el estado con más detalle, si viene con sleeve, etc..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goToStep1()">← Atrás</button>
+      <button class="btn-next" id="btnStep2Next" onclick="goToStep3()" disabled>Previsualizar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 — PREVIEW -->
+  <div class="step-panel" id="step3">
+    <div class="preview-layout">
+      <div>
+        <div class="preview-card">
+          <div class="preview-card-img" id="previewImg">🎴</div>
+          <div class="preview-card-body">
+            <div class="pcb-name" id="previewName">—</div>
+            <div class="pcb-set" id="previewSet">—</div>
+            <div class="unverified-badge">⚠ No verificada</div>
+            <div class="pcb-price" id="previewPrice">—</div>
+            <div class="pcb-ship" id="previewShip">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-details">
+        <div class="pd-section">
+          <div class="pds-title">Detalles del anuncio</div>
+          <div class="pds-row"><span class="pdr-label">Estado</span><span class="pdr-val" id="pvCond">—</span></div>
+          <div class="pds-row"><span class="pdr-label">Precio vendedor</span><span class="pdr-val accent" id="pvPrice">—</span></div>
+          <div class="pds-row"><span class="pdr-label">Precio referencia Cardmarket</span><span class="pdr-val" id="pvRef">—</span></div>
+          <div class="pds-row"><span class="pdr-label">Envío</span><span class="pdr-val" id="pvShip">—</span></div>
+        </div>
+
+
+
+        <div class="verify-banner">
+          <div class="vb-icon">🔍</div>
+          <div>
+            <div class="vb-title">¿Quieres verificar la autenticidad?</div>
+            <div class="vb-desc">Envía la carta a nuestro verificador en Guadalajara. El servicio incluye pre-grading y da más confianza a los compradores. Coste: envío + 3-20€ según carta. Lo paga el comprador.</div>
+            <button class="btn-verify">Solicitar verificación</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="goToStep2()">← Atrás</button>
+      <button class="btn-next" onclick="publishListing()">Publicar anuncio ✓</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="ss-icon">✅</div>
+    <div class="ss-title">¡PUBLICADO!</div>
+    <div class="ss-sub">Tu carta ya está visible en el mercado con badge de "No verificada".<br>Te avisaremos cuando alguien haga una oferta.</div>
+    <div class="ss-actions">
+      <button class="btn-outline" onclick="resetForm()">Publicar otra carta</button>
+      <button class="btn-accent" onclick="window.location.href='pple-tcg.html'">Ver marketplace</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BASE = 'https://api.tcgdex.net/v2/en';
+let selectedCard = null;
+let selectedCond = null;
+let selectedShipping = null;
+let uploadedPhoto = null;
+let currentStep = 1;
+
+const SHIPPING_PRICES = { letter:1.80, small:3.50, medium:5.90, large:9.90 };
+const SHIPPING_NAMES = { letter:'Carta certificada', small:'Paquete pequeño', medium:'Paquete mediano', large:'Paquete grande' };
+
+// ---- STEP NAVIGATION ----
+function setStep(n) {
+  currentStep = n;
+  [1,2,3].forEach(i => {
+    document.getElementById(`step${i}`).classList.toggle('active', i===n);
+    const tab = document.getElementById(`stab${i}`);
+    tab.classList.remove('active','done');
+    if (i < n) tab.classList.add('done');
+    if (i === n) tab.classList.add('active');
+  });
+  document.getElementById('successScreen').classList.remove('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goToStep1() { setStep(1); }
+function goToStep2() {
+  if (!selectedCard) return;
+  populateStep2();
+  setStep(2);
+}
+function goToStep3() {
+  if (!validateStep2()) return;
+  populateStep3();
+  setStep(3);
+}
+
+// ---- SCAN METHOD ----
+function selectScanMethod(method) {
+  document.getElementById('optScan').classList.toggle('selected', method==='scan');
+  document.getElementById('optManual').classList.toggle('selected', method==='manual');
+  document.getElementById('scanArea').classList.toggle('active', method==='scan');
+  document.getElementById('manualArea').classList.toggle('active', method==='manual');
+}
+
+// ---- PHOTO HANDLING (for scan) ----
+async function handlePhoto(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  uploadedPhoto = file;
+
+  // Show preview
+  const url = URL.createObjectURL(file);
+  document.getElementById('cardPreviewImg').src = url;
+  document.getElementById('scanResult').classList.add('active');
+  document.getElementById('srStatus').className = 'sr-status sr-analyzing';
+  document.getElementById('srStatus').innerHTML = '<span class="spin">⟳</span> Analizando carta con IA...';
+  document.getElementById('srCardInfo').style.display = 'none';
+  document.getElementById('srActions').style.display = 'none';
+  document.getElementById('srError').style.display = 'none';
+
+  try {
+    const identified = await analyzeCardWithAI(file);
+    if (identified) {
+      await fetchCardFromTCGdex(identified);
+    } else {
+      showScanError();
+    }
+  } catch(e) {
+    showScanError();
+  }
+}
+
+async function analyzeCardWithAI(file) {
+  // Convert to base64
+  const base64 = await fileToBase64(file);
+  const mediaType = file.type || 'image/jpeg';
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            {
+              type: 'text',
+              text: `Analyze this Pokémon TCG card image. Respond ONLY with a JSON object, no other text:
+{
+  "name": "exact card name in English",
+  "set": "exact set/expansion name",
+  "number": "card number like 025/197",
+  "language": "en or jp",
+  "identified": true
+}
+If this is not a Pokémon card or you cannot identify it clearly, respond with: {"identified": false}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    return parsed.identified ? parsed : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fetchCardFromTCGdex(identified) {
+  try {
+    // Search by name in TCGdex
+    const res = await fetch(`${BASE}/cards?name=${encodeURIComponent(identified.name)}`);
+    const cards = await res.json();
+
+    let match = null;
+    if (Array.isArray(cards) && cards.length > 0) {
+      match = cards[0];
+      // Try to find a better match by set name if we have it
+      if (identified.set) {
+        const better = cards.find(c =>
+          c.set?.name?.toLowerCase().includes(identified.set.toLowerCase().substring(0,5))
+        );
+        if (better) match = better;
+      }
+    }
+
+    if (match) {
+      // Fetch full card details
+      const detailRes = await fetch(`${BASE}/cards/${match.id}`);
+      const card = await detailRes.json();
+      const price = card.pricing?.cardmarket?.trend || card.pricing?.cardmarket?.avg || null;
+
+      selectedCard = { ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
+
+      document.getElementById('srStatus').className = 'sr-status sr-found';
+      document.getElementById('srStatus').innerHTML = '✓ Carta identificada correctamente';
+      document.getElementById('srName').textContent = card.name;
+      document.getElementById('srSet').textContent = `${card.set?.name || identified.set} · #${card.localId}`;
+      document.getElementById('srPrice').textContent = price ? `€${parseFloat(price).toFixed(2)}` : 'Sin precio en Cardmarket';
+      document.getElementById('srCardInfo').style.display = 'block';
+      document.getElementById('srActions').style.display = 'flex';
+    } else {
+      // Card not in TCGdex but AI identified it — create a minimal entry
+      selectedCard = {
+        id: 'custom-' + Date.now(),
+        name: identified.name,
+        localId: identified.number || '—',
+        set: { name: identified.set || '—' },
+        pricing: null,
+        _imageUrl: null,
+        _custom: true
+      };
+      document.getElementById('srStatus').className = 'sr-status sr-found';
+      document.getElementById('srStatus').innerHTML = `✓ Identificada: ${identified.name}`;
+      document.getElementById('srName').textContent = identified.name;
+      document.getElementById('srSet').textContent = `${identified.set || '—'} · ${identified.number || '—'}`;
+      document.getElementById('srPrice').textContent = 'Sin precio en Cardmarket';
+      document.getElementById('srCardInfo').style.display = 'block';
+      document.getElementById('srActions').style.display = 'flex';
+    }
+  } catch(e) {
+    showScanError();
+  }
+}
+
+function showScanError() {
+  document.getElementById('srStatus').style.display = 'none';
+  document.getElementById('srError').style.display = 'block';
+}
+
+function addToPortfolio() {
+  if (!selectedCard) return;
+  // Would save to user's portfolio in real app
+  const btn = document.querySelector('.btn-portfolio');
+  btn.textContent = '✓ Añadido';
+  btn.style.color = 'var(--nm)';
+  btn.style.borderColor = 'var(--nm)';
+  setTimeout(() => {
+    btn.textContent = '+ Portfolio';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  }, 2000);
+}
+
+// ---- MANUAL SEARCH ----
+let searchTimer = null;
+async function searchCards(query) {
+  clearTimeout(searchTimer);
+  if (query.length < 2) { document.getElementById('manualResults').innerHTML=''; return; }
+  searchTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${BASE}/cards?name=${encodeURIComponent(query)}`);
+      const cards = await res.json();
+      if (!Array.isArray(cards) || !cards.length) {
+        document.getElementById('manualResults').innerHTML = '<div style="padding:10px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text3)">Sin resultados</div>';
+        return;
+      }
+      document.getElementById('manualResults').innerHTML = cards.slice(0,8).map(c => `
+        <div class="ms-item" onclick="selectManualCard('${c.id}')">
+          <img class="ms-thumb" src="${c.image ? c.image+'/low.png' : ''}" onerror="this.style.display='none'" alt="">
+          <div class="ms-item-info">
+            <div class="ms-item-name">${c.name}</div>
+            <div class="ms-item-set">${c.set?.name || '—'} · #${c.localId}</div>
+          </div>
+          <div class="ms-item-price" id="mip-${c.id}">—</div>
+        </div>`).join('');
+      // Load prices async
+      cards.slice(0,8).forEach(async c => {
+        try {
+          const dr = await fetch(`${BASE}/cards/${c.id}`);
+          const d = await dr.json();
+          const p = d.pricing?.cardmarket?.trend;
+          const el = document.getElementById(`mip-${c.id}`);
+          if (el) el.textContent = p ? `€${parseFloat(p).toFixed(2)}` : '—';
+        } catch(e){}
+      });
+    } catch(e) {}
+  }, 350);
+}
+
+async function selectManualCard(id) {
+  try {
+    const res = await fetch(`${BASE}/cards/${id}`);
+    const card = await res.json();
+    selectedCard = { ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
+    document.getElementById('manualSearch').value = card.name;
+    document.getElementById('manualResults').innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);border-radius:8px;">
+        <img style="width:36px;height:50px;object-fit:contain" src="${card.image ? card.image+'/low.png' : ''}" onerror="this.style.display='none'">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.85rem">${card.name}</div>
+          <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text3)">${card.set?.name||'—'} · #${card.localId}</div>
+        </div>
+        <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent)">${card.pricing?.cardmarket?.trend ? '€'+parseFloat(card.pricing.cardmarket.trend).toFixed(2) : '—'}</div>
+        <button class="btn-sell-now" onclick="goToStep2()" style="padding:8px 14px;font-size:0.68rem">Vender →</button>
+      </div>`;
+  } catch(e) {}
+}
+
+// ---- STEP 2 ----
+function populateStep2() {
+  if (!selectedCard) return;
+  const price = selectedCard.pricing?.cardmarket?.trend;
+  const imgUrl = selectedCard._imageUrl || (selectedCard.image ? selectedCard.image+'/low.png' : null);
+  document.getElementById('scbImg').src = imgUrl || '';
+  document.getElementById('scbImg').style.display = imgUrl ? 'block' : 'none';
+  document.getElementById('scbName').textContent = selectedCard.name;
+  document.getElementById('scbSet').textContent = `${selectedCard.set?.name||'—'} · #${selectedCard.localId}`;
+  document.getElementById('scbPrice').textContent = price ? `€${parseFloat(price).toFixed(2)}` : '—';
+  const sug = document.getElementById('priceSuggestion');
+  if (price) {
+    sug.innerHTML = `Cardmarket: <strong style="color:var(--text2)">€${parseFloat(price).toFixed(2)}</strong> · <span onclick="useSuggestedPrice()">Usar precio sugerido</span>`;
+  } else {
+    sug.textContent = 'Sin precio de referencia en Cardmarket';
+  }
+  // If we have a scanned photo use it as first slot
+  if (uploadedPhoto) {
+    const url = URL.createObjectURL(uploadedPhoto);
+    const slot = document.getElementById('ps0');
+    slot.innerHTML = `<img src="${url}">`;
+    slot.classList.add('filled');
+    slot.onclick = null;
+  }
+}
+
+function selectCond(cond, el) {
+  selectedCond = cond;
+  document.querySelectorAll('.cond-opt').forEach(e => e.classList.remove('selected-nm','selected-lp','selected-mp'));
+  el.classList.add(`selected-${cond.toLowerCase()}`);
+  validateStep2();
+}
+
+function selectShipping(type, el) {
+  selectedShipping = type;
+  document.querySelectorAll('.ship-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  validateStep2();
+}
+
+function validateStep2() {
+  const price = parseFloat(document.getElementById('sellPrice').value);
+  const valid = selectedCond && selectedShipping && price > 0;
+  document.getElementById('btnStep2Next').disabled = !valid;
+  return valid;
+}
+
+
+function useSuggestedPrice() {
+  const price = selectedCard?.pricing?.cardmarket?.trend;
+  if (price) {
+    document.getElementById('sellPrice').value = parseFloat(price).toFixed(2);
+    validateStep2();
+  }
+}
+
+function triggerPhoto(slot) {
+  document.getElementById(`pf${slot}`).click();
+}
+function handleSlotPhoto(slot, input) {
+  if (!input.files[0]) return;
+  const url = URL.createObjectURL(input.files[0]);
+  const el = document.getElementById(`ps${slot}`);
+  el.innerHTML = `<img src="${url}">`;
+  el.classList.add('filled');
+  el.onclick = null;
+}
+
+// ---- STEP 3 ----
+function populateStep3() {
+  const price = parseFloat(document.getElementById('sellPrice').value);
+  const imgUrl = selectedCard._imageUrl || (selectedCard.image ? selectedCard.image+'/low.png' : null);
+  const refPrice = selectedCard.pricing?.cardmarket?.trend;
+
+  // Preview card
+  document.getElementById('previewImg').innerHTML = imgUrl
+    ? `<img src="${imgUrl}" alt="${selectedCard.name}" onerror="this.parentNode.innerHTML='🎴'">`
+    : '🎴';
+  document.getElementById('previewName').textContent = selectedCard.name;
+  document.getElementById('previewSet').textContent = `${selectedCard.set?.name||'—'} · #${selectedCard.localId}`;
+  document.getElementById('previewPrice').textContent = `€${price.toFixed(2)}`;
+  document.getElementById('previewShip').textContent = `Envío: ${SHIPPING_NAMES[selectedShipping]} · €${SHIPPING_PRICES[selectedShipping].toFixed(2)}`;
+
+  // Details
+  const condLabels = {NM:'Near Mint 🟢', LP:'Lightly Played 🟡', MP:'Moderately Played 🔴'};
+  document.getElementById('pvCond').textContent = condLabels[selectedCond] || selectedCond;
+  document.getElementById('pvPrice').textContent = `€${price.toFixed(2)}`;
+  document.getElementById('pvRef').textContent = refPrice ? `€${parseFloat(refPrice).toFixed(2)}` : 'Sin referencia';
+  document.getElementById('pvShip').textContent = `${SHIPPING_NAMES[selectedShipping]} · €${SHIPPING_PRICES[selectedShipping].toFixed(2)}`;
+
+
+}
+
+function publishListing() {
+  // In real app: save to DB, navigate to listing
+  document.getElementById('step3').classList.remove('active');
+  [1,2,3].forEach(i => document.getElementById(`stab${i}`).classList.remove('active','done'));
+  document.getElementById('successScreen').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetForm() {
+  selectedCard=null; selectedCond=null; selectedShipping=null; uploadedPhoto=null;
+  document.getElementById('scanResult').classList.remove('active');
+  document.getElementById('manualResults').innerHTML='';
+  document.getElementById('manualSearch').value='';
+  document.getElementById('sellPrice').value='';
+  document.getElementById('sellNotes').value='';
+  document.querySelectorAll('.cond-opt').forEach(e=>e.classList.remove('selected-nm','selected-lp','selected-mp'));
+  document.querySelectorAll('.ship-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('optScan').classList.remove('selected');
+  document.getElementById('optManual').classList.remove('selected');
+  document.getElementById('scanArea').classList.remove('active');
+  document.getElementById('manualArea').classList.remove('active');
+  [0,1,2,3].forEach(i=>{
+    const slot=document.getElementById(`ps${i}`);
+    slot.innerHTML = i===0
+      ? `<input type="file" accept="image/*" id="pf${i}" onchange="handleSlotPhoto(${i},this)" style="display:none"><div class="ps-icon">📷</div><div class="ps-label">Principal</div>`
+      : `<input type="file" accept="image/*" id="pf${i}" onchange="handleSlotPhoto(${i},this)" style="display:none"><div class="ps-icon">+</div>`;
+    slot.classList.remove('filled');
+    if(i===0) slot.onclick=()=>triggerPhoto(0);
+    else slot.onclick=()=>triggerPhoto(i);
+  });
+  setStep(1);
+}
+</script>
+</body>
+</html>
