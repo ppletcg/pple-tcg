@@ -263,6 +263,7 @@ select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
           <div class="forgot">¿Olvidaste tu contraseña?</div>
         </div>
 
+        <div id="loginError" style="display:none;color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;"></div>
         <button class="btn-main" onclick="doLogin()">Entrar</button>
 
         <div class="auth-note">
@@ -502,9 +503,10 @@ select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
             </label>
           </div>
 
+          <div id="regError" style="display:none;color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;"></div>
           <div class="reg-nav">
-            <button class="btn-back-sm" onclick="goRegStep(3);document.getElementById('btnFinish').disabled=false">←</button>
-            <button class="btn-next-sm" id="btnFinish" onclick="accountType==='empresa'?doRegisterEmpresa():doRegister()" disabled>Crear cuenta ✓</button>
+            <button class="btn-back-sm" onclick="goRegStep(3)">←</button>
+            <button class="btn-next-sm" id="btnFinish" onclick="doFinishRegister()" disabled>Crear cuenta ✓</button>
           </div>
         </div>
 
@@ -535,43 +537,92 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 // ---- STATE ----
 let accountType = null
 
-// ---- CHECK SESSION — si ya estás logueado, al marketplace ----
+// ---- CHECK SESSION ----
 const { data: { session } } = await supabase.auth.getSession()
 if (session) window.location.href = 'pple-tcg.html'
 
 // ---- TABS ----
+// FIX: usaba clase 'hidden' que no existe en el CSS; el CSS usa 'active'
 window.switchTab = function(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) =>
-    t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')))
-  document.getElementById('panelLogin').classList.toggle('hidden', tab !== 'login')
-  document.getElementById('panelRegister').classList.toggle('hidden', tab !== 'register')
+  document.querySelectorAll('.auth-tab').forEach((t, i) =>
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')))
+  document.getElementById('panelLogin').classList.toggle('active', tab === 'login')
+  document.getElementById('panelRegister').classList.toggle('active', tab === 'register')
 }
 
 // ---- ACCOUNT TYPE ----
+// FIX: IDs incorrectos ('formParticular'/'formEmpresa' → 'fieldsParticular'/'fieldsEmpresa')
+// FIX: nunca habilitaba btnR1, dejando al usuario atascado en el paso 1
 window.selectType = function(type) {
   accountType = type
-  // show correct form
-  document.getElementById('formParticular').style.display = type === 'particular' ? 'block' : 'none'
-  document.getElementById('formEmpresa').style.display    = type === 'empresa' ? 'block' : 'none'
+  window.accountType = type  // accesible desde onclicks inline
+  document.getElementById('typePart').classList.toggle('selected', type === 'particular')
+  document.getElementById('typeEmp').classList.toggle('selected', type === 'empresa')
+  document.getElementById('fieldsParticular').style.display = type === 'particular' ? 'block' : 'none'
+  document.getElementById('fieldsEmpresa').style.display = type === 'empresa' ? 'block' : 'none'
+  document.getElementById('btnR1').disabled = false
 }
 
-// ---- STEPS (visual only, keep existing) ----
+// ---- STEPS ----
+// FIX: usaba '.reg-step'/'.step-dot' que no existen; los reales son '.reg-panel'/'.rp-step'
 window.goRegStep = function(step) {
-  document.querySelectorAll('.reg-step').forEach((s,i) =>
-    s.style.display = i === step-1 ? 'block' : 'none')
-  document.querySelectorAll('.step-dot').forEach((d,i) => {
-    d.classList.toggle('active', i === step-1)
-    d.classList.toggle('done', i < step-1)
+  document.querySelectorAll('.reg-panel').forEach((s, i) => {
+    s.classList.toggle('active', i === step - 1)
   })
+  document.querySelectorAll('.rp-step').forEach((d, i) => {
+    d.classList.toggle('active', i === step - 1)
+    d.classList.toggle('done', i < step - 1)
+  })
+  // habilitar btnFinish al llegar al paso 4
+  if (step === 4) document.getElementById('btnFinish').disabled = false
+}
+
+// ---- AGE SELECTION ----
+// FIX: función no estaba definida aunque se llamaba desde HTML
+window.selectAge = function(type) {
+  document.getElementById('age18').classList.toggle('selected', type === 'adult')
+  document.getElementById('ageMinor').classList.toggle('selected', type === 'minor')
+  document.getElementById('minorWarning').classList.toggle('show', type === 'minor')
+}
+
+// ---- USERNAME VALIDATION ----
+// FIX: función no estaba definida aunque se llamaba desde HTML
+window.checkUsername = function(input) {
+  const val = input.value.trim()
+  const err = document.getElementById('usernameError')
+  if (val && !/^[a-z0-9_]{3,20}$/.test(val)) {
+    err.textContent = 'Solo letras minúsculas, números y _ (3-20 caracteres)'
+    err.classList.add('show')
+    input.classList.add('error')
+  } else {
+    err.classList.remove('show')
+    input.classList.remove('error')
+  }
+}
+
+// ---- PASSWORD STRENGTH ----
+// FIX: función no estaba definida aunque se llamaba desde HTML
+window.checkPassStrength = function(input) {
+  const val = input.value
+  const container = document.getElementById('passStrength')
+  if (!container) return
+  const strength = (val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val)) ? 3
+                 : val.length >= 8 ? 2
+                 : val.length >= 4 ? 1 : 0
+  const colors = ['#ff4757', '#ffa502', '#2ed573']
+  container.innerHTML = [0, 1, 2, 3].map(i =>
+    `<div style="flex:1;height:3px;border-radius:2px;background:${i < strength ? colors[strength - 1] : 'var(--border)'}"></div>`
+  ).join('')
 }
 
 // ---- LOGIN ----
 window.doLogin = async function() {
   const email = document.getElementById('loginEmail').value.trim()
   const pass  = document.getElementById('loginPass').value
-  const btn   = document.querySelector('[onclick="doLogin()"]')
+  const btn   = document.querySelector('#panelLogin .btn-main')
 
-  if (!email || !pass) { showAuthError('loginError', 'Rellena email y contraseña'); return }
+  clearError('loginError')
+  if (!email || !pass) { showError('loginError', 'Rellena email y contraseña'); return }
 
   btn.textContent = 'Entrando...'
   btn.disabled = true
@@ -579,8 +630,8 @@ window.doLogin = async function() {
   const { error } = await supabase.auth.signInWithPassword({ email, password: pass })
 
   if (error) {
-    showAuthError('loginError', 'Email o contraseña incorrectos')
-    btn.textContent = 'Entrar →'
+    showError('loginError', 'Email o contraseña incorrectos')
+    btn.textContent = 'Entrar'
     btn.disabled = false
   } else {
     btn.textContent = '✓ Redirigiendo...'
@@ -588,8 +639,16 @@ window.doLogin = async function() {
   }
 }
 
+// ---- DISPATCH REGISTRO (llamado desde btnFinish) ----
+window.doFinishRegister = function() {
+  if (window.accountType === 'empresa') {
+    window.doRegisterEmpresa()
+  } else {
+    window.doRegister()
+  }
+}
+
 // ---- REGISTER PARTICULAR ----
-window.btnFinish = undefined
 window.doRegister = async function() {
   const username  = document.getElementById('username').value.trim()
   const firstName = document.getElementById('firstName').value.trim()
@@ -598,11 +657,12 @@ window.doRegister = async function() {
   const pass      = document.getElementById('regPass').value
   const terms     = document.getElementById('acceptTerms')?.checked
 
+  clearError('regError')
   if (!username || !firstName || !email || !pass) {
-    showAuthError('regError', 'Rellena todos los campos obligatorios'); return
+    showError('regError', 'Rellena todos los campos obligatorios'); return
   }
-  if (pass.length < 6) { showAuthError('regError', 'Contraseña mínimo 6 caracteres'); return }
-  if (terms === false)  { showAuthError('regError', 'Acepta los términos para continuar'); return }
+  if (pass.length < 6) { showError('regError', 'Contraseña mínimo 6 caracteres'); return }
+  if (!terms) { showError('regError', 'Acepta los términos para continuar'); return }
 
   const btn = document.getElementById('btnFinish')
   btn.textContent = 'Creando cuenta...'
@@ -621,8 +681,8 @@ window.doRegister = async function() {
   })
 
   if (error) {
-    showAuthError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
-    btn.textContent = 'Crear cuenta'
+    showError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
+    btn.textContent = 'Crear cuenta ✓'
     btn.disabled = false
   } else {
     showSuccess(email)
@@ -631,15 +691,18 @@ window.doRegister = async function() {
 
 // ---- REGISTER EMPRESA ----
 window.doRegisterEmpresa = async function() {
-  const email    = document.getElementById('companyEmail').value.trim()
-  const pass     = document.getElementById('companyPass').value
-  const name     = document.getElementById('companyName').value.trim()
-  const cif      = document.getElementById('companyCIF').value.trim()
+  const email = document.getElementById('companyEmail').value.trim()
+  const pass  = document.getElementById('companyPass').value
+  const name  = document.getElementById('companyName').value.trim()
+  const cif   = document.getElementById('companyCIF').value.trim()
+  const terms = document.getElementById('acceptTerms')?.checked
 
+  clearError('regError')
   if (!email || !pass || !name || !cif) {
-    showAuthError('regError', 'Rellena todos los campos obligatorios'); return
+    showError('regError', 'Rellena todos los campos obligatorios'); return
   }
-  if (pass.length < 6) { showAuthError('regError', 'Contraseña mínimo 6 caracteres'); return }
+  if (pass.length < 6) { showError('regError', 'Contraseña mínimo 6 caracteres'); return }
+  if (!terms) { showError('regError', 'Acepta los términos para continuar'); return }
 
   const btn = document.getElementById('btnFinish')
   btn.textContent = 'Creando cuenta...'
@@ -658,8 +721,8 @@ window.doRegisterEmpresa = async function() {
   })
 
   if (error) {
-    showAuthError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
-    btn.textContent = 'Crear cuenta'
+    showError('regError', error.message === 'User already registered' ? 'Este email ya tiene una cuenta' : error.message)
+    btn.textContent = 'Crear cuenta ✓'
     btn.disabled = false
   } else {
     showSuccess(email)
@@ -667,31 +730,32 @@ window.doRegisterEmpresa = async function() {
 }
 
 // ---- HELPERS ----
-function showAuthError(id, msg) {
-  let el = document.getElementById(id)
-  if (!el) {
-    el = document.createElement('div')
-    el.id = id
-    el.style.cssText = 'color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-top:10px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;'
-    document.getElementById('panelRegister')?.appendChild(el) ||
-    document.getElementById('panelLogin')?.appendChild(el)
-  }
+function showError(id, msg) {
+  const el = document.getElementById(id)
+  if (!el) return
   el.textContent = msg
   el.style.display = 'block'
 }
 
+function clearError(id) {
+  const el = document.getElementById(id)
+  if (el) el.style.display = 'none'
+}
+
 function showSuccess(email) {
-  const panel = document.getElementById('panelRegister')
-  panel.innerHTML = `
-    <div style="text-align:center;padding:48px 20px;">
-      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
-      <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:12px;color:var(--text)">¡CUENTA CREADA!</div>
-      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);line-height:1.9;letter-spacing:0.5px;">
-        Hemos enviado un email de confirmación a<br>
-        <span style="color:var(--accent)">${email}</span><br><br>
-        Confírmalo y ya podrás acceder.
-      </div>
-    </div>`
+  // Activar panel rpSuccess (índice 4 entre los .reg-panel)
+  document.querySelectorAll('.reg-panel').forEach((s, i) => {
+    s.classList.toggle('active', i === 4)
+  })
+  document.querySelectorAll('.rp-step').forEach(d => {
+    d.classList.add('done')
+    d.classList.remove('active')
+  })
+  // Actualizar el contenido del panel de éxito con el email
+  const emailEl = document.querySelector('#rpSuccess .as-sub')
+  if (emailEl) {
+    emailEl.innerHTML = `Tu cuenta ha sido creada correctamente.<br>Confirma tu email en <span style="color:var(--accent)">${email}</span> para acceder.`
+  }
 }
 
 // ---- SOCIAL (placeholder) ----
