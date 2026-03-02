@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Mensajes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080d; --bg2:#0e0e16; --surface:#11111c; --surface2:#181825;
+  --border:#22223a; --border2:#2d2d4a;
+  --accent:#d4f53c; --accent-glow:rgba(212,245,60,0.15); --accent-dim:rgba(212,245,60,0.06);
+  --text:#eeeef8; --text2:#9898b8; --text3:#55556a;
+  --nm:#2ed573; --mp:#ff4757; --lp:#ffa502;
+  --nm-bg:rgba(46,213,115,0.08); --mp-bg:rgba(255,71,87,0.08); --lp-bg:rgba(255,165,2,0.08);
+  --font-display:'Bebas Neue',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-body:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:1px solid var(--border);background:rgba(8,8,13,0.97);backdrop-filter:blur(24px);flex-shrink:0;z-index:10;}
+.logo{font-family:var(--font-display);font-size:1.8rem;letter-spacing:3px;cursor:pointer;}
+.logo .dot{color:var(--accent);}
+.nav-pills{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.nav-tab{padding:7px 22px;font-family:var(--font-mono);font-size:0.72rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--text2);cursor:pointer;border:none;background:none;border-right:1px solid var(--border);transition:all 0.15s;}
+.nav-tab:last-child{border-right:none;}
+.nav-tab:hover{background:var(--surface);color:var(--text);}
+.nav-tab.active{background:var(--accent);color:#08080d;font-weight:700;}
+.nav-right{display:flex;gap:10px;align-items:center;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3d2a6e,#d4f53c);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;color:#08080d;cursor:pointer;}
+.notif-btn{position:relative;background:none;border:1px solid var(--border);border-radius:5px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:0.85rem;transition:all 0.15s;}
+.notif-btn:hover{border-color:var(--border2);color:var(--text2);}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:1.5px solid var(--bg);}
+
+/* LAYOUT */
+.msgs-layout{display:grid;grid-template-columns:320px 1fr;flex:1;min-height:0;overflow:hidden;}
+
+/* ===== CONVERSATIONS LIST ===== */
+.conv-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+
+.conv-header{padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.conv-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:2px;margin-bottom:10px;}
+.conv-search{position:relative;}
+.conv-search input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px 8px 32px;color:var(--text);font-family:var(--font-mono);font-size:0.72rem;outline:none;letter-spacing:0.3px;transition:border-color 0.15s;}
+.conv-search input:focus{border-color:var(--accent);}
+.conv-search input::placeholder{color:var(--text3);}
+.conv-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:0.72rem;pointer-events:none;}
+
+.conv-filter{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;}
+.cf-tab{flex:1;padding:8px;text-align:center;font-family:var(--font-mono);font-size:0.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.15s;}
+.cf-tab:hover{color:var(--text2);}
+.cf-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.conv-list{flex:1;overflow-y:auto;}
+
+.conv-item{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;transition:all 0.15s;border-bottom:1px solid var(--border);position:relative;}
+.conv-item:hover{background:var(--surface);}
+.conv-item.active{background:var(--surface);border-right:2px solid var(--accent);}
+.conv-item.unread .ci-name{color:var(--text);font-weight:700;}
+.conv-item.unread .ci-last{color:var(--text2);}
+.conv-item.unread::after{content:'';position:absolute;top:50%;left:6px;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.ci-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.82rem;font-weight:700;color:#08080d;}
+.ci-av-img{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+
+.ci-info{flex:1;min-width:0;}
+.ci-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.ci-name{font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-time{font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);flex-shrink:0;}
+.ci-last{font-size:0.78rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:300;}
+
+.ci-card-thumb{width:28px;height:38px;object-fit:contain;border-radius:3px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);}
+
+/* ===== CHAT AREA ===== */
+.chat-panel{display:flex;flex-direction:column;overflow:hidden;}
+
+/* Empty state */
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);}
+.ce-icon{font-size:3rem;margin-bottom:14px;opacity:0.5;}
+.ce-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:2px;margin-bottom:6px;color:var(--text2);}
+.ce-sub{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:1px;}
+
+/* Chat header */
+.chat-header{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);}
+.ch-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.8rem;font-weight:700;color:#08080d;flex-shrink:0;}
+.ch-info{flex:1;}
+.ch-name{font-size:0.88rem;font-weight:700;}
+.ch-status{font-family:var(--font-mono);font-size:0.62rem;color:var(--nm);letter-spacing:0.5px;display:flex;align-items:center;gap:5px;}
+.ch-status::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--nm);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ch-status.offline::before{background:var(--text3);animation:none;}
+.ch-status.offline{color:var(--text3);}
+
+/* Card context bar */
+.card-context{display:flex;align-items:center;gap:12px;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+.cc-img{width:32px;height:44px;object-fit:contain;border-radius:4px;background:var(--surface2);}
+.cc-info{flex:1;}
+.cc-name{font-size:0.82rem;font-weight:600;}
+.cc-price{font-family:var(--font-display);font-size:0.95rem;letter-spacing:0.5px;color:var(--accent);}
+.cc-badge{font-family:var(--font-mono);font-size:0.6rem;padding:2px 7px;border-radius:3px;}
+.cc-nm{background:var(--nm-bg);border:1px solid rgba(46,213,115,0.2);color:var(--nm);}
+.cc-lp{background:var(--lp-bg);border:1px solid rgba(255,165,2,0.2);color:var(--lp);}
+.cc-psa{background:rgba(212,245,60,0.07);border:1px solid rgba(212,245,60,0.2);color:#d4f53c;}
+.ch-actions{display:flex;gap:8px;}
+.ch-btn{padding:6px 14px;border-radius:5px;font-family:var(--font-mono);font-size:0.68rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.ch-btn-buy{border:none;background:var(--accent);color:#08080d;}
+.ch-btn-buy:hover{box-shadow:0 0 14px var(--accent-glow);}
+.ch-btn-offer{border:1px solid var(--border2);background:none;color:var(--text2);}
+.ch-btn-offer:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Messages */
+.messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+
+.msg-day-divider{text-align:center;font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;position:relative;margin:4px 0;}
+.msg-day-divider::before,.msg-day-divider::after{content:'';position:absolute;top:50%;width:calc(50% - 60px);height:1px;background:var(--border);}
+.msg-day-divider::before{left:0;}
+.msg-day-divider::after{right:0;}
+
+.msg{display:flex;gap:10px;max-width:70%;animation:msgIn 0.2s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.mine{align-self:flex-end;flex-direction:row-reverse;}
+.msg.theirs{align-self:flex-start;}
+
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.65rem;font-weight:700;color:#08080d;flex-shrink:0;align-self:flex-end;}
+
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:0.85rem;line-height:1.5;font-weight:300;position:relative;}
+.msg.theirs .msg-bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text);}
+.msg.mine .msg-bubble{background:var(--accent);color:#08080d;border-bottom-right-radius:4px;font-weight:400;}
+.msg-time{font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);margin-top:4px;text-align:right;}
+.msg.mine .msg-time{color:rgba(8,8,13,0.5);}
+
+/* Special message types */
+.msg-offer{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:14px;width:280px;}
+.msg-offer-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.msg-offer-amount{font-family:var(--font-display);font-size:1.8rem;letter-spacing:1px;color:var(--accent);margin-bottom:10px;}
+.msg-offer-card{font-size:0.78rem;color:var(--text2);margin-bottom:12px;}
+.msg-offer-actions{display:flex;gap:8px;}
+.btn-accept{flex:1;padding:8px;border:none;border-radius:5px;background:var(--nm);color:#08080d;font-family:var(--font-mono);font-size:0.68rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-accept:hover{box-shadow:0 0 12px rgba(46,213,115,0.3);}
+.btn-decline{flex:1;padding:8px;border:1px solid var(--border2);border-radius:5px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
+.btn-decline:hover{border-color:var(--mp);color:var(--mp);}
+.offer-accepted{font-family:var(--font-mono);font-size:0.68rem;color:var(--nm);margin-top:8px;display:none;}
+.offer-accepted.show{display:block;}
+
+.msg-system{align-self:center;font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px;letter-spacing:0.5px;}
+
+/* Typing indicator */
+.typing-indicator{display:none;align-self:flex-start;padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;}
+.typing-indicator.show{display:flex;gap:4px;align-items:center;}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:tdot 1.2s infinite;}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* Input bar */
+.chat-input-bar{padding:14px 24px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+
+.quick-actions{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.qa-btn{padding:4px 12px;border:1px solid var(--border2);border-radius:20px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.62rem;cursor:pointer;transition:all 0.15s;letter-spacing:0.3px;white-space:nowrap;}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+.msg-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--font-body);font-size:0.85rem;outline:none;resize:none;max-height:120px;min-height:44px;transition:border-color 0.15s;line-height:1.5;}
+.msg-input:focus{border-color:var(--accent);}
+.msg-input::placeholder{color:var(--text3);}
+.send-btn{width:44px;height:44px;border-radius:10px;border:none;background:var(--accent);color:#08080d;font-size:1rem;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn:hover{box-shadow:0 0 16px var(--accent-glow);}
+.send-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+
+/* Offer modal */
+.offer-modal-overlay{position:fixed;inset:0;background:rgba(4,4,8,0.85);backdrop-filter:blur(12px);z-index:200;display:none;align-items:center;justify-content:center;}
+.offer-modal-overlay.open{display:flex;}
+.offer-modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:28px;width:100%;max-width:380px;animation:mIn 0.2s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
+.om-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:1px;margin-bottom:4px;}
+.om-sub{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:0.5px;margin-bottom:20px;}
+.om-card-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;}
+.om-card-img{width:36px;height:50px;object-fit:contain;}
+.om-card-name{font-size:0.85rem;font-weight:600;margin-bottom:2px;}
+.om-card-price{font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);}
+.om-input-wrap{position:relative;margin-bottom:16px;}
+.om-euro{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--font-display);font-size:1.4rem;color:var(--text3);}
+.om-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 14px 14px 36px;color:var(--text);font-family:var(--font-display);font-size:2rem;letter-spacing:1px;outline:none;transition:border-color 0.15s;}
+.om-input:focus{border-color:var(--accent);}
+.om-hint{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);margin-bottom:16px;letter-spacing:0.3px;}
+.om-hint span{color:var(--text2);}
+.om-btns{display:flex;gap:8px;}
+.btn-cancel{flex:1;padding:11px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.72rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;transition:all 0.15s;}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text2);}
+.btn-send-offer{flex:2;padding:11px;border:none;border-radius:6px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;transition:all 0.15s;}
+.btn-send-offer:hover{box-shadow:0 0 18px var(--accent-glow);}
+
+@media(max-width:700px){
+  nav{padding:0 18px;}
+  .nav-pills{display:none;}
+  .msgs-layout{grid-template-columns:1fr;}
+  .conv-panel{display:none;}
+  .conv-panel.mobile-open{display:flex;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="window.location.href='pple-tcg.html'">PPLE<span class="dot">.</span>TCG</div>
+  <div class="nav-pills">
+    <button class="nav-tab" onclick="window.location.href='pple-tcg.html'">Mercado</button>
+    <button class="nav-tab" onclick="window.location.href='pple-tcg-vender.html'">Vender</button>
+    <button class="nav-tab" onclick="window.location.href='pple-tcg-auth.html'">Verificación</button>
+    <button class="nav-tab active">Mensajes</button>
+  </div>
+  <div class="nav-right">
+    <button class="notif-btn" title="Notificaciones">🔔<div class="notif-dot"></div></button>
+    <div class="nav-avatar" title="Mi perfil">T</div>
+  </div>
+</nav>
+
+<div class="msgs-layout">
+
+  <!-- CONVERSATIONS LIST -->
+  <div class="conv-panel">
+    <div class="conv-header">
+      <div class="conv-title">MENSAJES</div>
+      <div class="conv-search">
+        <span class="conv-search-icon">⌕</span>
+        <input type="text" placeholder="Buscar conversación..." oninput="filterConvs(this.value)">
+      </div>
+    </div>
+    <div class="conv-filter">
+      <button class="cf-tab active" onclick="filterTab('all',this)">Todos</button>
+      <button class="cf-tab" onclick="filterTab('compras',this)">Comprando</button>
+      <button class="cf-tab" onclick="filterTab('ventas',this)">Vendiendo</button>
+    </div>
+    <div class="conv-list" id="convList"></div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-empty" id="chatEmpty">
+      <div class="ce-icon">💬</div>
+      <div class="ce-title">TUS MENSAJES</div>
+      <div class="ce-sub">Selecciona una conversación para empezar</div>
+    </div>
+
+    <div id="chatContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="chat-header">
+        <div class="ch-av" id="chAv" style="background:linear-gradient(135deg,#3d2a6e,#d4f53c)">T</div>
+        <div class="ch-info">
+          <div class="ch-name" id="chName">—</div>
+          <div class="ch-status" id="chStatus">En línea</div>
+        </div>
+        <div class="ch-actions">
+          <button class="ch-btn ch-btn-offer" onclick="openOfferModal()">Hacer oferta</button>
+          <button class="ch-btn ch-btn-buy" onclick="buyNow()">Comprar ahora</button>
+        </div>
+      </div>
+
+      <div class="card-context" id="cardContext">
+        <img class="cc-img" id="ccImg" src="" onerror="this.style.display='none'" alt="">
+        <div class="cc-info">
+          <div class="cc-name" id="ccName">—</div>
+          <div class="cc-price" id="ccPrice">—</div>
+        </div>
+        <span class="cc-badge" id="ccBadge">NM</span>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="chat-input-bar">
+        <div class="quick-actions" id="quickActions"></div>
+        <div class="input-row">
+          <textarea class="msg-input" id="msgInput" placeholder="Escribe un mensaje..." rows="1"
+            oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Enviar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OFFER MODAL -->
+<div class="offer-modal-overlay" id="offerModal" onclick="closeOfferModal(event)">
+  <div class="offer-modal">
+    <div class="om-title">HACER OFERTA</div>
+    <div class="om-sub">El vendedor recibirá tu oferta y podrá aceptarla o rechazarla</div>
+    <div class="om-card-row">
+      <img class="om-card-img" id="omCardImg" src="" onerror="this.style.display='none'" alt="">
+      <div>
+        <div class="om-card-name" id="omCardName">—</div>
+        <div class="om-card-price" id="omCardPrice">Precio: —</div>
+      </div>
+    </div>
+    <div class="om-input-wrap">
+      <span class="om-euro">€</span>
+      <input class="om-input" type="number" id="omAmount" placeholder="0.00" step="0.01" min="0.01" oninput="updateOfferHint()">
+    </div>
+    <div class="om-hint" id="omHint">Introduce el precio que quieres ofrecer</div>
+    <div class="om-btns">
+      <button class="btn-cancel" onclick="document.getElementById('offerModal').classList.remove('open')">Cancelar</button>
+      <button class="btn-send-offer" onclick="submitOffer()">Enviar oferta →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- DATA ----
+const ME = { name:'TrainerJuan', initial:'J', color:'linear-gradient(135deg,#3d2a6e,#d4f53c)' };
+
+const CONVERSATIONS = [
+  {
+    id:1, user:'TrainerRed99', initial:'T', color:'linear-gradient(135deg,#1a1a2e,#e94560)',
+    status:'online', type:'compra',
+    card:{ name:'Charizard ex', set:'Obsidian Flames', price:'€124.50', cond:'NM', img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png' },
+    last:'¿Puedes hacer envío mañana?', time:'14:32', unread:true,
+    messages:[
+      { from:'them', text:'Hola! Me interesa la Charizard ex. ¿Sigue disponible?', time:'14:15' },
+      { from:'me', text:'¡Sí! Está en perfecto estado NM, nunca jugada.', time:'14:18' },
+      { from:'them', text:'¿Tienes más fotos del dorso? Quiero ver que no tenga marcas.', time:'14:22' },
+      { from:'me', text:'Claro, ahora te mando.', time:'14:23' },
+      { type:'system', text:'TrainerJuan envió 2 fotos adicionales' },
+      { from:'them', text:'Perfecta, la tomo. ¿Aceptas €115?', time:'14:28', isOffer:true, amount:'115.00', cardName:'Charizard ex' },
+      { from:'me', text:'No bajo de €120, es el precio de Cardmarket esta semana.', time:'14:30' },
+      { from:'them', text:'¿Puedes hacer envío mañana?', time:'14:32' },
+    ]
+  },
+  {
+    id:2, user:'CardShopMadrid', initial:'C', color:'linear-gradient(135deg,#0f3460,#533483)',
+    status:'offline', type:'compra',
+    card:{ name:'Pikachu ex', set:'Paldea Evolved', price:'€84.20', cond:'NM', img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png' },
+    last:'Enviado con Correos Express 📦', time:'Ayer', unread:false,
+    messages:[
+      { from:'them', text:'Buenas tardes, ¿el Pikachu ex sigue disponible?', time:'11:00' },
+      { from:'me', text:'Sí, disponible. ¿Qué estado buscas?', time:'11:05' },
+      { from:'them', text:'NM o Near Mint, preferiblemente sin sleeve previo.', time:'11:08' },
+      { from:'me', text:'Esta nunca fue sleeve. Va directamente en toploader desde el sobre.', time:'11:10' },
+      { type:'system', text:'Transacción completada · €84.20' },
+      { from:'them', text:'Enviado con Correos Express 📦', time:'16:45' },
+    ]
+  },
+  {
+    id:3, user:'PokéCollector_ES', initial:'P', color:'linear-gradient(135deg,#2d6a4f,#d4f53c)',
+    status:'online', type:'venta',
+    card:{ name:'Mewtwo ex', set:'Scarlet & Violet 151', price:'€210.00', cond:'PSA 10', img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png', isSlab:true },
+    last:'La PSA 10 tiene cert #45821937', time:'11:20', unread:true,
+    messages:[
+      { from:'me', text:'Hola, vi tu Mewtwo ex PSA 10. ¿Tienes foto del certificado?', time:'10:55' },
+      { from:'them', text:'Claro, aquí está. Cert PSA #45821937, gradeada en julio 2024.', time:'11:02' },
+      { type:'system', text:'PokéCollector_ES compartió el certificado PSA' },
+      { from:'me', text:'¿Aceptas €195?', time:'11:15', isOffer:true, amount:'195.00', cardName:'Mewtwo ex PSA 10' },
+      { from:'them', text:'No puedo bajar de €205, llevo 3 semanas sin venderla y ya tuve una oferta de €200 que rechacé.', time:'11:18' },
+      { from:'them', text:'La PSA 10 tiene cert #45821937', time:'11:20' },
+    ]
+  },
+  {
+    id:4, user:'PokeMarket_EU', initial:'P', color:'linear-gradient(135deg,#7b2d8b,#d4f53c)',
+    status:'offline', type:'venta',
+    card:{ name:'Umbreon ex', set:'Temporal Forces', price:'€67.30', cond:'LP', img:'https://assets.tcgdex.net/univ/sv/sv05/95/high.png' },
+    last:'De acuerdo, cerramos a €65', time:'Lun', unread:false,
+    messages:[
+      { from:'me', text:'Hola, el Umbreon ex LP, ¿cuánto marca exactamente la condición?', time:'09:30' },
+      { from:'them', text:'Un arañazo muy leve en el dorso, apenas visible. El frontal perfecto.', time:'09:45' },
+      { from:'me', text:'¿Bajarías a €65? Dado que es LP.', time:'10:00' },
+      { from:'them', text:'De acuerdo, cerramos a €65', time:'10:15' },
+      { type:'system', text:'Oferta aceptada · €65.00' },
+    ]
+  },
+];
+
+let currentConv = null;
+let convFilter = 'all';
+
+// ---- RENDER CONVS ----
+function renderConvList(filter='', tab='all') {
+  const list = document.getElementById('convList');
+  const convs = CONVERSATIONS.filter(c => {
+    if (tab !== 'all' && c.type !== tab) return false;
+    if (filter && !c.user.toLowerCase().includes(filter.toLowerCase()) &&
+        !c.card.name.toLowerCase().includes(filter.toLowerCase())) return false;
+    return true;
+  });
+
+  if (!convs.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:var(--text3)">Sin conversaciones</div>';
+    return;
+  }
+
+  list.innerHTML = convs.map(c => `
+    <div class="conv-item ${c.unread?'unread':''} ${currentConv?.id===c.id?'active':''}" onclick="openConv(${c.id})">
+      <div class="ci-av" style="background:${c.color}">${c.initial}</div>
+      <div class="ci-info">
+        <div class="ci-top">
+          <div class="ci-name">${c.user}</div>
+          <div class="ci-time">${c.time}</div>
+        </div>
+        <div class="ci-last">${c.card.name} · ${c.last}</div>
+      </div>
+      ${c.card.img ? `<img class="ci-card-thumb" src="${c.card.img}" onerror="this.style.display='none'" alt="">` : ''}
+    </div>`).join('');
+}
+
+function filterConvs(q) { renderConvList(q, convFilter); }
+function filterTab(tab, btn) {
+  convFilter = tab;
+  document.querySelectorAll('.cf-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderConvList('', tab);
+}
+
+// ---- OPEN CONVERSATION ----
+function openConv(id) {
+  const conv = CONVERSATIONS.find(c => c.id === id);
+  if (!conv) return;
+  conv.unread = false;
+  currentConv = conv;
+  renderConvList('', convFilter);
+
+  // Show chat
+  document.getElementById('chatEmpty').style.display = 'none';
+  const cc = document.getElementById('chatContent');
+  cc.style.display = 'flex';
+
+  // Header
+  document.getElementById('chAv').textContent = conv.user[0];
+  document.getElementById('chAv').style.background = conv.color;
+  document.getElementById('chName').textContent = conv.user;
+  const statusEl = document.getElementById('chStatus');
+  statusEl.textContent = conv.status === 'online' ? 'En línea' : 'Última vez hace 2h';
+  statusEl.className = 'ch-status' + (conv.status === 'offline' ? ' offline' : '');
+
+  // Card context
+  document.getElementById('ccImg').src = conv.card.img || '';
+  document.getElementById('ccName').textContent = `${conv.card.name} · ${conv.card.set}`;
+  document.getElementById('ccPrice').textContent = conv.card.price;
+  const badge = document.getElementById('ccBadge');
+  badge.textContent = conv.card.cond;
+  badge.className = 'cc-badge ' + (conv.card.isSlab ? 'cc-psa' : conv.card.cond==='NM'?'cc-nm':'cc-lp');
+
+  // Modal card data
+  document.getElementById('omCardImg').src = conv.card.img || '';
+  document.getElementById('omCardName').textContent = conv.card.name;
+  document.getElementById('omCardPrice').textContent = `Precio: ${conv.card.price}`;
+
+  renderMessages(conv);
+  renderQuickActions(conv);
+}
+
+// ---- RENDER MESSAGES ----
+function renderMessages(conv) {
+  const container = document.getElementById('messages');
+  let html = '<div class="msg-day-divider">HOY</div>';
+
+  conv.messages.forEach(msg => {
+    if (msg.type === 'system') {
+      html += `<div class="msg-system">⚡ ${msg.text}</div>`;
+      return;
+    }
+    const isMine = msg.from === 'me';
+
+    if (msg.isOffer) {
+      html += `
+      <div class="msg ${isMine?'mine':'theirs'}">
+        ${!isMine ? `<div class="msg-av" style="background:${conv.color}">${conv.user[0]}</div>` : ''}
+        <div>
+          <div class="msg-offer">
+            <div class="msg-offer-label">💰 Oferta enviada</div>
+            <div class="msg-offer-amount">€${msg.amount}</div>
+            <div class="msg-offer-card">${msg.cardName}</div>
+            ${!isMine ? `<div class="msg-offer-actions">
+              <button class="btn-accept" onclick="acceptOffer(this, '${msg.amount}')">Aceptar</button>
+              <button class="btn-decline" onclick="declineOffer(this)">Rechazar</button>
+            </div>
+            <div class="offer-accepted">✓ Oferta aceptada</div>` : '<div style="font-family:var(--font-mono);font-size:0.65rem;color:rgba(8,8,13,0.5)">Pendiente de respuesta...</div>'}
+          </div>
+          <div class="msg-time">${msg.time||''}</div>
+        </div>
+        ${isMine ? `<div class="msg-av" style="background:${ME.color}">${ME.initial}</div>` : ''}
+      </div>`;
+      return;
+    }
+
+    html += `
+    <div class="msg ${isMine?'mine':'theirs'}">
+      ${!isMine ? `<div class="msg-av" style="background:${conv.color}">${conv.user[0]}</div>` : ''}
+      <div>
+        <div class="msg-bubble">${msg.text}</div>
+        <div class="msg-time">${msg.time||''}</div>
+      </div>
+      ${isMine ? `<div class="msg-av" style="background:${ME.color}">${ME.initial}</div>` : ''}
+    </div>`;
+  });
+
+  html += '<div class="typing-indicator" id="typingIndicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+// ---- QUICK ACTIONS ----
+function renderQuickActions(conv) {
+  const qa = [
+    '¿Cuándo puedes enviar?',
+    '¿Aceptas €' + (parseFloat(conv.card.price.replace('€',''))*0.9).toFixed(0) + '?',
+    '¿Puedes mandar más fotos?',
+    '¿Va en toploader?',
+  ];
+  document.getElementById('quickActions').innerHTML = qa.map(q =>
+    `<button class="qa-btn" onclick="insertQuickAction('${q.replace(/'/g,"\\'")}')"> ${q}</button>`
+  ).join('');
+}
+
+function insertQuickAction(text) {
+  const input = document.getElementById('msgInput');
+  input.value = text;
+  input.focus();
+  autoResize(input);
+}
+
+// ---- SEND MESSAGE ----
+function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text || !currentConv) return;
+
+  const now = new Date();
+  const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  currentConv.messages.push({ from:'me', text, time });
+  currentConv.last = text;
+  input.value = '';
+  autoResize(input);
+  renderMessages(currentConv);
+  renderConvList('', convFilter);
+
+  // Simulate reply after delay
+  simulateReply();
+}
+
+function simulateReply() {
+  if (!currentConv) return;
+  const replies = [
+    '¡Perfecto! Te confirmo en un momento.',
+    'De acuerdo, lo compruebo.',
+    'Sí, puedo hacer el envío mañana.',
+    '¿Me puedes decir tu código postal para calcular el envío?',
+    'Genial, le doy un último vistazo y cerramos.',
+  ];
+
+  setTimeout(() => {
+    const ti = document.getElementById('typingIndicator');
+    if (ti) ti.classList.add('show');
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  }, 600);
+
+  setTimeout(() => {
+    const ti = document.getElementById('typingIndicator');
+    if (ti) ti.classList.remove('show');
+    const reply = replies[Math.floor(Math.random()*replies.length)];
+    const now = new Date();
+    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+    currentConv.messages.push({ from:'them', text:reply, time });
+    currentConv.last = reply;
+    renderMessages(currentConv);
+    renderConvList('', convFilter);
+  }, 2400);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ---- OFFER ----
+function openOfferModal() {
+  document.getElementById('offerModal').classList.add('open');
+  document.getElementById('omAmount').value = '';
+  document.getElementById('omAmount').focus();
+}
+function closeOfferModal(e) {
+  if (e.target === document.getElementById('offerModal'))
+    document.getElementById('offerModal').classList.remove('open');
+}
+function updateOfferHint() {
+  const v = parseFloat(document.getElementById('omAmount').value);
+  const hint = document.getElementById('omHint');
+  if (!v || !currentConv) { hint.textContent='Introduce el precio que quieres ofrecer'; return; }
+  const ref = parseFloat(currentConv.card.price.replace('€',''));
+  const pct = ((v - ref) / ref * 100).toFixed(1);
+  const diff = (v - ref).toFixed(2);
+  hint.innerHTML = pct < 0
+    ? `<span style="color:var(--mp)">${pct}% (${diff}€) respecto al precio pedido</span>`
+    : `<span style="color:var(--nm)">+${pct}% (+${diff}€) respecto al precio pedido</span>`;
+}
+function submitOffer() {
+  const v = document.getElementById('omAmount').value;
+  if (!v || !currentConv) return;
+  document.getElementById('offerModal').classList.remove('open');
+  const now = new Date();
+  const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  currentConv.messages.push({ from:'me', isOffer:true, amount:parseFloat(v).toFixed(2), cardName:currentConv.card.name, time });
+  currentConv.last = `Oferta: €${parseFloat(v).toFixed(2)}`;
+  renderMessages(currentConv);
+  renderConvList('', convFilter);
+  // Simulate response
+  setTimeout(() => {
+    const ti = document.getElementById('typingIndicator');
+    if (ti) ti.classList.add('show');
+  }, 1000);
+  setTimeout(() => {
+    const ti = document.getElementById('typingIndicator');
+    if (ti) ti.classList.remove('show');
+    const ref = parseFloat(currentConv.card.price.replace('€',''));
+    const offered = parseFloat(v);
+    const reply = offered >= ref*0.95
+      ? '¡Trato hecho! Procedo con el envío.'
+      : `Hmm, lo mínimo que puedo aceptar es €${(ref*0.95).toFixed(2)}.`;
+    const now2 = new Date();
+    const time2 = `${now2.getHours()}:${String(now2.getMinutes()).padStart(2,'0')}`;
+    currentConv.messages.push({ from:'them', text:reply, time:time2 });
+    currentConv.last = reply;
+    renderMessages(currentConv);
+    renderConvList('', convFilter);
+  }, 2800);
+}
+
+function acceptOffer(btn, amount) {
+  btn.closest('.msg-offer-actions').style.display = 'none';
+  btn.closest('.msg-offer').querySelector('.offer-accepted').classList.add('show');
+  if (currentConv) {
+    currentConv.messages.push({ type:'system', text:`Oferta aceptada · €${amount}` });
+    renderMessages(currentConv);
+  }
+}
+function declineOffer(btn) {
+  btn.closest('.msg-offer').style.opacity = '0.4';
+  btn.closest('.msg-offer-actions').innerHTML = '<div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--mp)">Oferta rechazada</div>';
+}
+
+function buyNow() {
+  if (!currentConv) return;
+  const msg = `✅ He pulsado Comprar ahora. ¿Puedes confirmar disponibilidad para proceder?`;
+  const now = new Date();
+  currentConv.messages.push({ from:'me', text:msg, time:`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}` });
+  renderMessages(currentConv);
+}
+
+// ---- INIT ----
+renderConvList();
+</script>
+</body>
+</html>
