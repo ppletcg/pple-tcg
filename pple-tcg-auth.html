@@ -185,6 +185,19 @@ select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   nav{padding:0 18px;}
   .auth-right{padding:24px 18px;}
 }
+
+/* RESET PASSWORD MODAL */
+.reset-overlay{position:fixed;inset:0;background:rgba(8,8,13,0.88);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.reset-overlay.open{opacity:1;pointer-events:all;}
+.reset-card{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:28px;width:100%;max-width:380px;position:relative;animation:fadeIn 0.2s ease;}
+.reset-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem;line-height:1;padding:4px;transition:color 0.15s;}
+.reset-close:hover{color:var(--text);}
+.reset-title{font-family:var(--font-display);font-size:1.5rem;letter-spacing:1px;margin-bottom:6px;}
+.reset-sub{font-size:0.8rem;color:var(--text2);font-weight:300;line-height:1.65;margin-bottom:20px;}
+.reset-success{text-align:center;padding:8px 0;}
+.rs-icon{font-size:2.5rem;margin-bottom:14px;}
+.rs-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:1px;margin-bottom:8px;}
+.rs-sub{font-size:0.8rem;color:var(--text2);line-height:1.7;}
 </style>
 </head>
 <body>
@@ -260,7 +273,7 @@ select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
             <input class="fg-input" type="password" id="loginPass" placeholder="••••••••">
             <button class="input-toggle" onclick="togglePass('loginPass',this)">👁</button>
           </div>
-          <div class="forgot">¿Olvidaste tu contraseña?</div>
+          <div class="forgot" onclick="doForgotPassword()">¿Olvidaste tu contraseña?</div>
         </div>
 
         <div id="loginError" style="display:none;color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;"></div>
@@ -527,6 +540,30 @@ select.fg-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
   </div>
 </div>
 
+<!-- RESET PASSWORD MODAL -->
+<div class="reset-overlay" id="resetOverlay" onclick="if(event.target===this)closeReset()">
+  <div class="reset-card">
+    <button class="reset-close" onclick="closeReset()">✕</button>
+    <div id="resetForm">
+      <div class="reset-title">RECUPERAR ACCESO</div>
+      <div class="reset-sub">Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.</div>
+      <div class="form-group">
+        <label class="fg-label">Email</label>
+        <input class="fg-input" type="email" id="resetEmail" placeholder="tu@email.com">
+      </div>
+      <div id="resetError" style="display:none;color:#ff4757;font-family:var(--font-mono);font-size:0.7rem;margin-bottom:8px;padding:8px 12px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:5px;"></div>
+      <button class="btn-main" id="btnReset" onclick="doSendReset()">Enviar enlace de recuperación</button>
+    </div>
+    <div id="resetSuccess" style="display:none">
+      <div class="reset-success">
+        <div class="rs-icon">📬</div>
+        <div class="rs-title">EMAIL ENVIADO</div>
+        <div class="rs-sub">Revisa tu bandeja de entrada en<br><span id="resetEmailSent" style="color:var(--accent);font-family:var(--font-mono);font-size:0.75rem"></span><br><br>El enlace expira en 1 hora. Si no lo ves, revisa la carpeta de spam.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -771,9 +808,67 @@ window.togglePass = function(id, btn) {
   btn.textContent = input.type === 'password' ? '👁' : '🙈'
 }
 
+// ---- FORGOT PASSWORD ----
+window.doForgotPassword = function() {
+  const prefill = document.getElementById('loginEmail').value.trim()
+  const input = document.getElementById('resetEmail')
+  if (prefill) input.value = prefill
+  document.getElementById('resetForm').style.display = 'block'
+  document.getElementById('resetSuccess').style.display = 'none'
+  document.getElementById('resetError').style.display = 'none'
+  const btn = document.getElementById('btnReset')
+  btn.textContent = 'Enviar enlace de recuperación'
+  btn.disabled = false
+  document.getElementById('resetOverlay').classList.add('open')
+  setTimeout(() => input.focus(), 50)
+}
+
+window.closeReset = function() {
+  document.getElementById('resetOverlay').classList.remove('open')
+}
+
+window.doSendReset = async function() {
+  const email = document.getElementById('resetEmail').value.trim()
+  const errEl = document.getElementById('resetError')
+  const btn   = document.getElementById('btnReset')
+
+  errEl.style.display = 'none'
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Introduce un email válido'
+    errEl.style.display = 'block'
+    return
+  }
+
+  btn.textContent = 'Enviando...'
+  btn.disabled = true
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/pple-tcg-auth.html'
+  })
+
+  if (error) {
+    errEl.textContent = 'Error al enviar. Comprueba el email e inténtalo de nuevo.'
+    errEl.style.display = 'block'
+    btn.textContent = 'Enviar enlace de recuperación'
+    btn.disabled = false
+  } else {
+    document.getElementById('resetEmailSent').textContent = email
+    document.getElementById('resetForm').style.display = 'none'
+    document.getElementById('resetSuccess').style.display = 'block'
+  }
+}
+
 // ---- ENTER KEY ----
 document.getElementById('loginPass')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') window.doLogin()
+})
+
+document.getElementById('resetEmail')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doSendReset()
+})
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') window.closeReset()
 })
 </script>
 </body>
