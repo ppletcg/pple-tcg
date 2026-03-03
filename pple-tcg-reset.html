@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Nueva contraseña</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080d; --bg2:#0e0e16; --surface:#11111c; --surface2:#181825;
+  --border:#22223a; --border2:#2d2d4a;
+  --accent:#d4f53c; --accent-glow:rgba(212,245,60,0.18); --accent-dim:rgba(212,245,60,0.06);
+  --text:#eeeef8; --text2:#9898b8; --text3:#55556a;
+  --nm:#2ed573; --mp:#ff4757; --lp:#ffa502;
+  --nm-bg:rgba(46,213,115,0.08); --mp-bg:rgba(255,71,87,0.08);
+  --font-display:'Bebas Neue',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-body:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;border-bottom:1px solid var(--border);background:rgba(8,8,13,0.97);backdrop-filter:blur(24px);flex-shrink:0;}
+.logo{font-family:var(--font-display);font-size:1.8rem;letter-spacing:3px;cursor:pointer;}
+.logo .dot{color:var(--accent);}
+.nav-back{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);cursor:pointer;transition:color 0.15s;letter-spacing:0.5px;border:none;background:none;}
+.nav-back:hover{color:var(--text2);}
+
+/* LAYOUT */
+.auth-layout{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0;}
+
+/* LEFT PANEL */
+.auth-left{
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  padding:60px 56px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+.al-glow{position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(212,245,60,0.07) 0%,transparent 70%);pointer-events:none;}
+.al-glow2{position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(46,213,115,0.05) 0%,transparent 70%);pointer-events:none;}
+
+.al-tag{font-family:var(--font-mono);font-size:0.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(212,245,60,0.25);padding:4px 12px;border-radius:3px;width:fit-content;margin-bottom:32px;}
+.al-headline{font-family:var(--font-display);font-size:4.5rem;line-height:0.92;letter-spacing:2px;margin-bottom:20px;}
+.al-headline .accent{color:var(--accent);}
+.al-sub{font-size:0.9rem;color:var(--text2);line-height:1.7;font-weight:300;max-width:360px;}
+
+.al-features{display:flex;flex-direction:column;gap:12px;margin-top:auto;padding-top:40px;}
+.al-feat{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.af-icon{font-size:1.1rem;flex-shrink:0;}
+.af-text{font-size:0.82rem;color:var(--text2);font-weight:300;line-height:1.4;}
+.af-text strong{color:var(--text);font-weight:600;}
+
+/* RIGHT PANEL */
+.auth-right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+  overflow-y:auto;
+}
+
+.auth-box{width:100%;max-width:440px;}
+
+/* Form elements */
+.form-group{margin-bottom:14px;}
+.fg-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.fg-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 14px;color:var(--text);font-family:var(--font-mono);font-size:0.82rem;outline:none;transition:border-color 0.15s;letter-spacing:0.3px;}
+.fg-input:focus{border-color:var(--accent);}
+.fg-input::placeholder{color:var(--text3);}
+.fg-input.error{border-color:var(--mp);}
+
+.input-icon-wrap{position:relative;}
+.input-icon-wrap .fg-input{padding-right:40px;}
+.input-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.8rem;padding:0;}
+.input-toggle:hover{color:var(--text2);}
+
+/* Main button */
+.btn-main{width:100%;padding:13px;border:none;border-radius:7px;background:var(--accent);color:#08080d;font-family:var(--font-mono);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:6px;}
+.btn-main:hover{box-shadow:0 0 24px var(--accent-glow);transform:translateY(-1px);}
+.btn-main:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.auth-note{font-size:0.75rem;color:var(--text3);text-align:center;margin-top:16px;line-height:1.6;}
+.auth-note a{color:var(--text2);cursor:pointer;text-decoration:underline;transition:color 0.15s;}
+.auth-note a:hover{color:var(--accent);}
+
+/* Error / info boxes */
+.msg-box{font-family:var(--font-mono);font-size:0.7rem;margin-bottom:12px;padding:10px 14px;border-radius:6px;display:none;line-height:1.5;}
+.msg-box.show{display:block;}
+.msg-box.error{color:var(--mp);background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);}
+.msg-box.warning{color:var(--lp);background:rgba(255,165,2,0.07);border:1px solid rgba(255,165,2,0.2);}
+
+/* Password strength */
+#passStrength{display:flex;gap:4px;margin-top:6px;}
+
+/* Section titles */
+.reset-title{font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:6px;}
+.reset-sub{font-size:0.85rem;color:var(--text2);font-weight:300;line-height:1.65;margin-bottom:24px;}
+
+/* Panels */
+.panel{display:none;}
+.panel.active{display:block;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Success state */
+.success-wrap{text-align:center;padding:20px 0;}
+.s-icon{font-size:3rem;margin-bottom:16px;}
+.s-title{font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:8px;}
+.s-sub{font-size:0.85rem;color:var(--text2);font-weight:300;line-height:1.6;margin-bottom:24px;}
+
+/* Invalid token state */
+.invalid-wrap{text-align:center;padding:20px 0;}
+
+@media(max-width:800px){
+  .auth-layout{grid-template-columns:1fr;}
+  .auth-left{display:none;}
+  nav{padding:0 18px;}
+  .auth-right{padding:24px 18px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="window.location.href='pple-tcg.html'">PPLE<span class="dot">.</span>TCG</div>
+  <button class="nav-back" onclick="window.location.href='pple-tcg-auth.html'">← Volver a acceder</button>
+</nav>
+
+<div class="auth-layout">
+
+  <!-- LEFT — Branding -->
+  <div class="auth-left">
+    <div class="al-glow"></div>
+    <div class="al-glow2"></div>
+    <div>
+      <div class="al-tag">Seguridad de cuenta</div>
+      <div class="al-headline">NUEVA<br><span class="accent">CLAVE.</span></div>
+      <div class="al-sub">Crea una contraseña nueva y segura para recuperar el acceso a tu cuenta en el mercado TCG.</div>
+    </div>
+    <div class="al-features">
+      <div class="al-feat">
+        <div class="af-icon">🔒</div>
+        <div class="af-text"><strong>Mínimo 8 caracteres</strong> — combina mayúsculas, números y símbolos.</div>
+      </div>
+      <div class="al-feat">
+        <div class="af-icon">🛡️</div>
+        <div class="af-text"><strong>Enlace de un solo uso</strong> — expira tras 1 hora por seguridad.</div>
+      </div>
+      <div class="al-feat">
+        <div class="af-icon">⚡</div>
+        <div class="af-text"><strong>Acceso inmediato</strong> — tras cambiarla podrás entrar al instante.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — Form -->
+  <div class="auth-right">
+    <div class="auth-box">
+
+      <!-- Loading state -->
+      <div class="panel active" id="panelLoading">
+        <div style="text-align:center;padding:40px 0;">
+          <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text3);letter-spacing:1px;">Verificando enlace...</div>
+        </div>
+      </div>
+
+      <!-- Invalid / expired token -->
+      <div class="panel" id="panelInvalid">
+        <div class="invalid-wrap">
+          <div class="s-icon">⚠️</div>
+          <div class="s-title">ENLACE INVÁLIDO</div>
+          <div class="s-sub">El enlace de recuperación ha expirado o ya ha sido utilizado.<br>Solicita uno nuevo desde la pantalla de acceso.</div>
+          <button class="btn-main" onclick="window.location.href='pple-tcg-auth.html'">Volver a acceder</button>
+        </div>
+      </div>
+
+      <!-- Reset form -->
+      <div class="panel" id="panelForm">
+        <div class="reset-title">NUEVA CONTRASEÑA</div>
+        <div class="reset-sub">Introduce y confirma tu nueva contraseña.</div>
+
+        <div class="form-group">
+          <label class="fg-label">Nueva contraseña</label>
+          <div class="input-icon-wrap">
+            <input class="fg-input" type="password" id="newPass" placeholder="Mínimo 8 caracteres" oninput="checkStrength(this)">
+            <button class="input-toggle" onclick="togglePass('newPass',this)">👁</button>
+          </div>
+          <div id="passStrength"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="fg-label">Confirmar contraseña</label>
+          <div class="input-icon-wrap">
+            <input class="fg-input" type="password" id="confirmPass" placeholder="Repite la contraseña">
+            <button class="input-toggle" onclick="togglePass('confirmPass',this)">👁</button>
+          </div>
+        </div>
+
+        <div class="msg-box error" id="resetError"></div>
+
+        <button class="btn-main" id="btnUpdate" onclick="doUpdatePassword()">Guardar nueva contraseña</button>
+
+        <div class="auth-note">
+          <a onclick="window.location.href='pple-tcg-auth.html'">← Cancelar y volver</a>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="panel" id="panelSuccess">
+        <div class="success-wrap">
+          <div class="s-icon">✅</div>
+          <div class="s-title">CONTRASEÑA ACTUALIZADA</div>
+          <div class="s-sub">Tu contraseña ha sido cambiada correctamente.<br>Ahora puedes iniciar sesión con tus nuevas credenciales.</div>
+          <button class="btn-main" onclick="window.location.href='pple-tcg-auth.html'">Ir a iniciar sesión</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+const SUPABASE_URL = 'https://iijreiuecodmqlcvhapp.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ---- HELPERS ----
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
+
+function showError(msg) {
+  const el = document.getElementById('resetError')
+  el.textContent = msg
+  el.classList.add('show')
+}
+
+function clearError() {
+  const el = document.getElementById('resetError')
+  el.textContent = ''
+  el.classList.remove('show')
+}
+
+// ---- TOGGLE PASSWORD VISIBILITY ----
+window.togglePass = function(id, btn) {
+  const input = document.getElementById(id)
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈' }
+  else { input.type = 'password'; btn.textContent = '👁' }
+}
+
+// ---- PASSWORD STRENGTH ----
+window.checkStrength = function(input) {
+  const val = input.value
+  const container = document.getElementById('passStrength')
+  const strength = (val.length >= 12 && /[A-Z]/.test(val) && /[0-9]/.test(val)) ? 3
+                 : val.length >= 8 ? 2
+                 : val.length >= 4 ? 1 : 0
+  const colors = ['#ff4757', '#ffa502', '#2ed573']
+  container.innerHTML = [0,1,2,3].map(i =>
+    `<div style="flex:1;height:3px;border-radius:2px;background:${i < strength ? colors[strength-1] : 'var(--border)'}"></div>`
+  ).join('')
+}
+
+// ---- UPDATE PASSWORD ----
+window.doUpdatePassword = async function() {
+  const newPass     = document.getElementById('newPass').value
+  const confirmPass = document.getElementById('confirmPass').value
+  const btn         = document.getElementById('btnUpdate')
+
+  clearError()
+
+  if (!newPass || !confirmPass) { showError('Rellena ambos campos'); return }
+  if (newPass.length < 8)       { showError('La contraseña debe tener al menos 8 caracteres'); return }
+  if (newPass !== confirmPass)  { showError('Las contraseñas no coinciden'); return }
+
+  btn.textContent = 'Guardando...'
+  btn.disabled = true
+
+  const { error } = await supabase.auth.updateUser({ password: newPass })
+
+  if (error) {
+    showError(error.message || 'No se pudo actualizar la contraseña. El enlace puede haber expirado.')
+    btn.textContent = 'Guardar nueva contraseña'
+    btn.disabled = false
+  } else {
+    showPanel('panelSuccess')
+  }
+}
+
+// ---- DETECT RECOVERY TOKEN FROM URL HASH ----
+// Supabase envía: #access_token=...&refresh_token=...&type=recovery
+async function init() {
+  const hash   = window.location.hash.substring(1)
+  const params = new URLSearchParams(hash)
+  const type   = params.get('type')
+  const access = params.get('access_token')
+  const refresh= params.get('refresh_token')
+
+  if (type === 'recovery' && access) {
+    // Establecer sesión con los tokens del enlace de recuperación
+    const { error } = await supabase.auth.setSession({
+      access_token:  access,
+      refresh_token: refresh || ''
+    })
+
+    if (error) {
+      showPanel('panelInvalid')
+    } else {
+      // Limpiar tokens de la URL para evitar reutilización
+      history.replaceState(null, '', window.location.pathname)
+      showPanel('panelForm')
+    }
+  } else {
+    // Sin token válido en la URL: comprobar si hay sesión PASSWORD_RECOVERY activa
+    // (por si el usuario recargó la página tras ya haber establecido sesión)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      showPanel('panelForm')
+    } else {
+      showPanel('panelInvalid')
+    }
+  }
+}
+
+init()
+</script>
+</body>
+</html>

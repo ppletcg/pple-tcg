@@ -843,7 +843,7 @@ window.doSendReset = async function() {
   btn.disabled = true
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/pple-tcg-auth.html'
+    redirectTo: 'https://ppletcg.github.io/pple-tcg/pple-tcg-reset.html'
   })
 
   if (error) {
