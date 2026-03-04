@@ -170,8 +170,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 .cond-opt.selected-nm{border-color:var(--nm);background:var(--nm-bg);}
 .cond-opt.selected-lp{border-color:var(--lp);background:var(--lp-bg);}
 .cond-opt.selected-mp{border-color:var(--mp);background:var(--mp-bg);}
+.cond-opt.selected-psa10{border-color:#d4f53c;background:rgba(212,245,60,0.08);}
+.cond-opt.selected-psa9{border-color:#38bdf8;background:rgba(56,189,248,0.08);}
+.cond-opt.selected-psa8{border-color:#a78bfa;background:rgba(167,139,250,0.08);}
 .co-badge{font-family:var(--font-mono);font-size:0.8rem;font-weight:700;letter-spacing:1px;margin-bottom:5px;}
 .co-nm .co-badge{color:var(--nm);}
+.co-psa10 .co-badge{color:#d4f53c;}
+.co-psa9 .co-badge{color:#38bdf8;}
+.co-psa8 .co-badge{color:#a78bfa;}
 .co-lp .co-badge{color:var(--lp);}
 .co-mp .co-badge{color:var(--mp);}
 .co-desc{font-size:0.72rem;color:var(--text2);line-height:1.4;}
@@ -213,7 +219,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 .preview-card-body{padding:14px;}
 .pcb-name{font-family:var(--font-display);font-size:1.1rem;letter-spacing:1px;margin-bottom:2px;}
 .pcb-set{font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);margin-bottom:10px;}
-.unverified-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,165,2,0.1);border:1px solid rgba(255,165,2,0.25);border-radius:4px;padding:3px 9px;font-family:var(--font-mono);font-size:0.62rem;color:var(--lp);letter-spacing:0.5px;margin-bottom:10px;}
 .pcb-price{font-family:var(--font-display);font-size:1.8rem;letter-spacing:1px;color:var(--accent);}
 .pcb-ship{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);margin-top:4px;}
 
@@ -227,14 +232,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 .pdr-val.accent{color:var(--accent);}
 .pdr-val.green{color:var(--nm);}
 
-
-
-.verify-banner{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(255,165,2,0.06);border:1px solid rgba(255,165,2,0.2);border-radius:8px;margin-top:16px;}
-.vb-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
-.vb-title{font-size:0.82rem;font-weight:600;margin-bottom:3px;color:var(--lp);}
-.vb-desc{font-size:0.78rem;color:var(--text2);line-height:1.5;font-weight:300;}
-.btn-verify{margin-top:8px;padding:7px 14px;border:1px solid var(--lp);border-radius:5px;background:none;color:var(--lp);font-family:var(--font-mono);font-size:0.68rem;font-weight:600;letter-spacing:0.5px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;}
-.btn-verify:hover{background:var(--lp-bg);}
 
 /* Nav buttons */
 .step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);}
@@ -404,10 +401,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
         </div>
       </div>
 
-      <!-- CONDITION -->
-      <div class="form-group full">
-        <div class="fg-label">Estado de la carta</div>
-        <div class="cond-selector">
+      <!-- CONDITION (shown/hidden by selectDisplayType) -->
+      <div class="form-group full" id="condSection" style="display:none">
+        <div class="fg-label" id="condLabel">Estado de la carta</div>
+        <!-- RAW: NM / LP / MP -->
+        <div class="cond-selector" id="rawOpts">
           <div class="cond-opt co-nm" onclick="selectCond('NM',this)">
             <div class="co-badge">NM</div>
             <div class="co-desc">Near Mint — Sin marcas visibles. Como nueva.</div>
@@ -419,6 +417,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
           <div class="cond-opt co-mp" onclick="selectCond('MP',this)">
             <div class="co-badge">MP</div>
             <div class="co-desc">Moderately Played — Desgaste visible, dobleces leves.</div>
+          </div>
+        </div>
+        <!-- SLAB: PSA 10 / PSA 9 / PSA 8 -->
+        <div class="cond-selector" id="psaOpts" style="display:none">
+          <div class="cond-opt co-psa10" onclick="selectCond('PSA10',this)">
+            <div class="co-badge">PSA 10</div>
+            <div class="co-desc">Gem Mint — Perfecta. La nota más alta.</div>
+          </div>
+          <div class="cond-opt co-psa9" onclick="selectCond('PSA9',this)">
+            <div class="co-badge">PSA 9</div>
+            <div class="co-desc">Mint — Casi perfecta. Mínimos defectos.</div>
+          </div>
+          <div class="cond-opt co-psa8" onclick="selectCond('PSA8',this)">
+            <div class="co-badge">PSA 8</div>
+            <div class="co-desc">Near Mint-Mint — Ligeros defectos visibles.</div>
           </div>
         </div>
       </div>
@@ -515,7 +528,6 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
           <div class="preview-card-body">
             <div class="pcb-name" id="previewName">—</div>
             <div class="pcb-set" id="previewSet">—</div>
-            <div class="unverified-badge">⚠ No verificada</div>
             <div class="pcb-price" id="previewPrice">—</div>
             <div class="pcb-ship" id="previewShip">—</div>
           </div>
@@ -543,7 +555,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
   <div class="success-screen" id="successScreen">
     <div class="ss-icon">✅</div>
     <div class="ss-title">¡PUBLICADO!</div>
-    <div class="ss-sub">Tu carta ya está visible en el mercado con badge de "No verificada".<br>Te avisaremos cuando alguien haga una oferta.</div>
+    <div class="ss-sub">Tu carta ya está visible en el mercado.<br>Te avisaremos cuando alguien haga una oferta.</div>
     <div class="ss-actions">
       <button class="btn-outline" onclick="resetForm()">Publicar otra carta</button>
       <button class="btn-accent" onclick="window.location.href='pple-tcg.html'">Ver marketplace</button>
@@ -861,12 +873,31 @@ function selectDisplayType(type, el) {
   selectedDisplayType = type;
   document.querySelectorAll('.dtype-opt').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
+  const condSection = document.getElementById('condSection');
+  const rawOpts = document.getElementById('rawOpts');
+  const psaOpts = document.getElementById('psaOpts');
+  const condLabel = document.getElementById('condLabel');
+  if (type === 'raw') {
+    condSection.style.display = 'block';
+    rawOpts.style.display = 'grid';
+    psaOpts.style.display = 'none';
+    condLabel.textContent = 'Estado de la carta';
+  } else if (type === 'slab') {
+    condSection.style.display = 'block';
+    rawOpts.style.display = 'none';
+    psaOpts.style.display = 'grid';
+    condLabel.textContent = 'Grado PSA';
+  } else {
+    condSection.style.display = 'none';
+  }
+  selectedCond = null;
+  document.querySelectorAll('.cond-opt').forEach(e => e.classList.remove('selected-nm','selected-lp','selected-mp','selected-psa10','selected-psa9','selected-psa8'));
   validateStep2();
 }
 
 function selectCond(cond, el) {
   selectedCond = cond;
-  document.querySelectorAll('.cond-opt').forEach(e => e.classList.remove('selected-nm','selected-lp','selected-mp'));
+  document.querySelectorAll('.cond-opt').forEach(e => e.classList.remove('selected-nm','selected-lp','selected-mp','selected-psa10','selected-psa9','selected-psa8'));
   el.classList.add(`selected-${cond.toLowerCase()}`);
   validateStep2();
 }
@@ -880,7 +911,8 @@ function selectShipping(type, el) {
 
 function validateStep2() {
   const price = parseFloat(document.getElementById('sellPrice').value);
-  const valid = selectedCond && selectedShipping && selectedDisplayType && price > 0;
+  const condOk = selectedDisplayType === 'sealed' || selectedCond != null;
+  const valid = condOk && selectedShipping && selectedDisplayType && price > 0;
   document.getElementById('btnStep2Next').disabled = !valid;
   return valid;
 }
@@ -922,8 +954,8 @@ function populateStep3() {
   document.getElementById('previewShip').textContent = `Envío: ${SHIPPING_NAMES[selectedShipping]} · €${SHIPPING_PRICES[selectedShipping].toFixed(2)}`;
 
   // Details
-  const condLabels = {NM:'Near Mint 🟢', LP:'Lightly Played 🟡', MP:'Moderately Played 🔴'};
-  document.getElementById('pvCond').textContent = condLabels[selectedCond] || selectedCond;
+  const condLabels = {NM:'Near Mint 🟢', LP:'Lightly Played 🟡', MP:'Moderately Played 🔴', PSA10:'PSA 10 🏆', PSA9:'PSA 9 ⭐', PSA8:'PSA 8 ✨'};
+  document.getElementById('pvCond').textContent = selectedDisplayType === 'sealed' ? 'Sellado' : (condLabels[selectedCond] || selectedCond || '—');
   document.getElementById('pvPrice').textContent = `€${price.toFixed(2)}`;
   document.getElementById('pvRef').textContent = refPrice ? `€${parseFloat(refPrice).toFixed(2)}` : 'Sin referencia';
   document.getElementById('pvShip').textContent = `${SHIPPING_NAMES[selectedShipping]} · €${SHIPPING_PRICES[selectedShipping].toFixed(2)}`;
@@ -977,7 +1009,10 @@ function resetForm() {
   document.getElementById('manualSearch').value='';
   document.getElementById('sellPrice').value='';
   document.getElementById('sellNotes').value='';
-  document.querySelectorAll('.cond-opt').forEach(e=>e.classList.remove('selected-nm','selected-lp','selected-mp'));
+  document.querySelectorAll('.cond-opt').forEach(e=>e.classList.remove('selected-nm','selected-lp','selected-mp','selected-psa10','selected-psa9','selected-psa8'));
+  document.getElementById('condSection').style.display = 'none';
+  document.getElementById('rawOpts').style.display = 'grid';
+  document.getElementById('psaOpts').style.display = 'none';
   document.querySelectorAll('.ship-opt').forEach(e=>e.classList.remove('selected'));
   document.getElementById('optScan').classList.remove('selected');
   document.getElementById('optManual').classList.remove('selected');

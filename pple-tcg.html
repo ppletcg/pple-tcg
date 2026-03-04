@@ -1075,8 +1075,8 @@ svg.chart { width: 100%; height: 100px; }
   </div>
   <div class="nav-right">
     <div class="live-dot">EN VIVO</div>
-    <button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
-    <button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>
+    <button class="btn-outline" id="navEntrar" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
+    <button class="btn-accent" id="navRegistrar" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>
   </div>
 </nav>
 
@@ -1257,11 +1257,11 @@ svg.chart { width: 100%; height: 100px; }
     'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
   );
   const { data: { user } } = await sb.auth.getUser();
+  const entrar = document.getElementById('navEntrar');
+  const registrar = document.getElementById('navRegistrar');
   if (user) {
-    // Show logged-in state: hide auth buttons, show avatar
-    document.querySelectorAll('.btn-outline, .btn-accent').forEach(b => {
-      if (b.onclick && b.onclick.toString().includes('pple-tcg-auth')) b.style.display = 'none';
-    });
+    if (entrar) entrar.style.display = 'none';
+    if (registrar) registrar.style.display = 'none';
     const avatar = document.createElement('div');
     avatar.className = 'nav-avatar';
     avatar.title = user.email;
@@ -1269,6 +1269,9 @@ svg.chart { width: 100%; height: 100px; }
     avatar.style.cursor = 'pointer';
     avatar.onclick = () => window.location.href = 'pple-tcg-perfil.html';
     document.querySelector('.nav-right').appendChild(avatar);
+  } else {
+    if (entrar) entrar.style.display = '';
+    if (registrar) registrar.style.display = '';
   }
 })();
 
@@ -1279,18 +1282,7 @@ const cardCache = {};
 let curPricing = null;
 
 // ---- TICKER INIT ----
-const TICKER_DATA = [
-  {n:'Charizard ex', p:'€124.50', c:'+18.5%', up:true},
-  {n:'Pikachu ex', p:'€84.20', c:'+12.3%', up:true},
-  {n:'Mewtwo ex', p:'€210.00', c:'+5.8%', up:true},
-  {n:'Umbreon ex', p:'€67.30', c:'-3.2%', up:false},
-  {n:'Gardevoir ex', p:'€45.80', c:'+7.1%', up:true},
-  {n:'Miraidon ex', p:'€52.40', c:'+9.3%', up:true},
-  {n:'Sylveon ex', p:'€55.00', c:'+14.2%', up:true},
-  {n:'Lugia VStar', p:'€31.60', c:'-2.1%', up:false},
-  {n:'Iron Valiant ex', p:'€38.20', c:'-1.5%', up:false},
-  {n:'Espeon ex', p:'€28.70', c:'+6.4%', up:true},
-];
+const TICKER_DATA = [];
 function buildTicker() {
   const items = [...TICKER_DATA, ...TICKER_DATA].map(d => `
     <div class="ticker-item">
@@ -1444,22 +1436,15 @@ function renderPage() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const isSlab = displayMode === 'slab';
 
-  function getSlabGrade(id) {
-    let h = 0; for (let ch of id) h = ((h << 5) - h) + ch.charCodeAt(0);
-    const grades = ['PSA10','PSA9','PSA8','PSA8','PSA9','PSA10','PSA9','PSA8'];
-    return grades[Math.abs(h) % grades.length];
-  }
-  function getCardCond(id) {
-    let h = 0; for (let ch of id) h = ((h << 5) - h) + ch.charCodeAt(0);
-    const conds = ['NM','LP','MP','NM','NM','LP','MP','NM'];
-    return conds[Math.abs(h) % conds.length];
-  }
-  function slabMult(g) { return g==='PSA10'?4.5:g==='PSA9'?2.2:1.4; }
+  function getSlabGrade(id) { return null; }
+  function getCardCond(id) { return null; }
 
   let filtered = curCards.filter(card => {
     if (q && !card.name.toLowerCase().includes(q)) return false;
-    if (!isSlab && cond !== 'all' && getCardCond(card.id) !== cond) return false;
-    if (isSlab && grade !== 'all' && getSlabGrade(card.id) !== grade) return false;
+    const cardCondVal = getCardCond(card.id);
+    if (!isSlab && cond !== 'all' && cardCondVal && cardCondVal !== cond) return false;
+    const slabGradeVal = getSlabGrade(card.id);
+    if (isSlab && grade !== 'all' && slabGradeVal && slabGradeVal !== grade) return false;
     return true;
   });
 
@@ -1486,9 +1471,7 @@ function renderPage() {
     const condClass = cardCond==='NM'?'raw-nm':cardCond==='LP'?'raw-lp':'raw-mp';
     const slabClass = slabGrade==='PSA10'?'slab-10':slabGrade==='PSA9'?'slab-9':'slab-8';
 
-    const displayPrice = basePrice
-      ? (isSlab ? parseFloat(basePrice)*slabMult(slabGrade) : parseFloat(basePrice))
-      : null;
+    const displayPrice = basePrice ? parseFloat(basePrice) : null;
 
     const priceHtml = displayPrice
       ? `<div class="card-price">€${displayPrice.toFixed(2)}</div>`
@@ -1502,8 +1485,8 @@ function renderPage() {
     }
 
     const badgeHtml = isSlab
-      ? `<div class="slab-badge ${slabClass}">🏆 ${slabGrade.replace('PSA','PSA ')}</div>`
-      : `<div class="raw-badge ${condClass}">${cardCond}</div>`;
+      ? (slabGrade ? `<div class="slab-badge ${slabClass}">🏆 ${slabGrade.replace('PSA','PSA ')}</div>` : '')
+      : (cardCond ? `<div class="raw-badge ${condClass}">${cardCond}</div>` : '');
 
     let stripHtml = '';
     if (cm?.trend && !isSlab) {
@@ -1717,31 +1700,7 @@ function switchChart(period,btn){
 }
 
 function renderSellers(basePrice,cm){
-  const p=basePrice?parseFloat(basePrice):null;
-  if(!p){document.getElementById('sellersList').innerHTML='<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">Sin precio de referencia.</div>';return;}
-  const prices={NM:p,LP:p*0.75,MP:p*0.48};
-  if(cm?.low)prices.NM=Math.max(p*0.9,cm.low);
-  const sellers=[
-    {n:'TrainerRed99',r:'4.9',s:'342',c:'NM',offset:1.05},
-    {n:'PokéCollector_ES',r:'4.7',s:'128',c:'LP',offset:0.98},
-    {n:'CardShopMadrid',r:'5.0',s:'891',c:'NM',offset:0.97},
-    {n:'PokeMarket_EU',r:'4.6',s:'55',c:'MP',offset:1.02},
-  ];
-  const vis=sellers.filter(s=>cond==='all'||cond===s.c);
-  if(!vis.length){document.getElementById('sellersList').innerHTML='<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">Sin vendedores para este estado.</div>';return;}
-  document.getElementById('sellersList').innerHTML=vis.map(s=>{
-    const sp=(prices[s.c]*s.offset).toFixed(2);
-    const bc=s.c==='NM'?'badge-nm':s.c==='LP'?'badge-lp':'badge-mp';
-    return `<div class="seller-row">
-      <div class="s-av">${s.n[0]}</div>
-      <div class="s-info">
-        <div class="s-name">${s.n}</div>
-        <div class="s-meta">⭐ ${s.r} · ${s.s} ventas <span class="badge ${bc}">${s.c}</span></div>
-      </div>
-      <div class="s-price">€${sp}</div>
-      <button class="btn-buy">Comprar</button>
-    </div>`;
-  }).join('');
+  document.getElementById('sellersList').innerHTML='<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay vendedores para esta carta.</div>';
 }
 
 function closeModal(){document.getElementById('overlay').classList.remove('open');}

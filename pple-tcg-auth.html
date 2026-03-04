@@ -575,8 +575,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 let accountType = null
 
 // ---- CHECK SESSION ----
-const { data: { session } } = await supabase.auth.getSession()
-if (session) window.location.href = 'pple-tcg.html'
+const { data: { user: existingUser } } = await supabase.auth.getUser()
+if (existingUser) window.location.href = 'pple-tcg.html'
 
 // ---- TABS ----
 // FIX: usaba clase 'hidden' que no existe en el CSS; el CSS usa 'active'
