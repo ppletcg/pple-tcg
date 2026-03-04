@@ -1247,7 +1247,31 @@ svg.chart { width: 100%; height: 100px; }
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+// ---- AUTH CHECK (passive — no redirect for unauthenticated users) ----
+(async () => {
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://iijreiuecodmqlcvhapp.supabase.co',
+    'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
+  );
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) {
+    // Show logged-in state: hide auth buttons, show avatar
+    document.querySelectorAll('.btn-outline, .btn-accent').forEach(b => {
+      if (b.onclick && b.onclick.toString().includes('pple-tcg-auth')) b.style.display = 'none';
+    });
+    const avatar = document.createElement('div');
+    avatar.className = 'nav-avatar';
+    avatar.title = user.email;
+    avatar.textContent = (user.email || 'U')[0].toUpperCase();
+    avatar.style.cursor = 'pointer';
+    avatar.onclick = () => window.location.href = 'pple-tcg-perfil.html';
+    document.querySelector('.nav-right').appendChild(avatar);
+  }
+})();
+
 const BASE = 'https://api.tcgdex.net/v2/en';
 let cond = 'all', grade = 'all', displayMode = 'raw', allSets = [], curCards = [], curPage = 1;
 const PER_PAGE = 20;
@@ -1560,8 +1584,13 @@ function setDisplay(mode) {
   document.getElementById('dispSlab').classList.toggle('disp-active', !isRaw);
   document.getElementById('rawFilters').style.display = isRaw ? 'flex' : 'none';
   document.getElementById('slabFilters').style.display = isRaw ? 'none' : 'flex';
-  // reset filters
+  // reset filter variables
   cond = 'all'; grade = 'all';
+  // reset visual state of RAW filter buttons
+  document.querySelectorAll('#rawFilters .cond-btn').forEach(b => b.className = 'cond-btn');
+  document.querySelector('#rawFilters .cond-btn').classList.add('c-all');
+  // reset visual state of SLAB filter buttons
+  document.querySelectorAll('#slabFilters .cond-btn').forEach(b => b.classList.remove('grade-active'));
   curPage = 1; renderPage();
 }
 
