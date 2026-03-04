@@ -191,10 +191,7 @@ nav{display:flex;align-items:center;gap:16px;padding:0 40px;height:60px;border-b
     <input class="search-input" type="text" id="searchInput" placeholder="Buscar carta, set, producto sellado..." value="Charizard" onkeydown="handleSearchKey(event)">
     <button class="search-btn" onclick="doSearch()">⌕</button>
   </div>
-  <div class="nav-right">
-    <button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
-    <button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <!-- RESULTS BAR -->
@@ -295,29 +292,10 @@ nav{display:flex;align-items:center;gap:16px;padding:0 40px;height:60px;border-b
 </div>
 
 <script>
-// ---- MOCK DATA ----
-const PRODUCTS = [
-  { id:1, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'raw',    cond:'NM',    price:124.50, seller:'TrainerRed99',  sellerRating:4.9, verified:true  },
-  { id:2, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'raw',    cond:'LP',    price:89.00,  seller:'CardShopMdrid', sellerRating:4.7, verified:false },
-  { id:3, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'slab',   cond:'PSA10', price:520.00, seller:'PokéCollector',  sellerRating:5.0, verified:true  },
-  { id:4, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'slab',   cond:'PSA9',  price:280.00, seller:'PokeMarket_EU', sellerRating:4.8, verified:true  },
-  { id:5, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'slab',   cond:'PSA8',  price:165.00, seller:'tcg_madrid',    sellerRating:4.6, verified:false },
-  { id:6, name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'raw',    cond:'NM',    price:118.00, seller:'HoloHunter',    sellerRating:4.9, verified:true  },
-  { id:7, name:'Booster Box Obsidian Flames',set:'Obsidian Flames',img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',  type:'sealed', cond:'SEALED',price:185.00, seller:'CardShopMdrid', sellerRating:4.7, verified:false },
-  { id:8, name:'Charizard ex',         set:'Paldean Fates',      img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'raw',    cond:'NM',    price:42.00,  seller:'PokéFan_ES',     sellerRating:4.5, verified:false },
-  { id:9, name:'Charizard ex',         set:'Paldean Fates',      img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'slab',   cond:'PSA10', price:190.00, seller:'TrainerRed99',  sellerRating:4.9, verified:true  },
-  { id:10,name:'Charizard ex',         set:'Obsidian Flames',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',     type:'raw',    cond:'MP',    price:67.00,  seller:'GottaCatchEm',  sellerRating:4.3, verified:false },
-];
-
-const SELLERS = [
-  { name:'TrainerRed99',  color:'linear-gradient(135deg,#1a1a2e,#e94560)', rating:4.9, sales:247, listings:18, location:'Madrid',    verified:true  },
-  { name:'CardShopMadrid',color:'linear-gradient(135deg,#0f3460,#533483)', rating:4.7, sales:512, listings:34, location:'Madrid',    verified:true  },
-  { name:'PokéCollector',  color:'linear-gradient(135deg,#2d6a4f,#d4f53c)', rating:5.0, sales:89,  listings:12, location:'Barcelona', verified:true  },
-  { name:'HoloHunter',    color:'linear-gradient(135deg,#3d1a6e,#d4f53c)', rating:4.9, sales:156, listings:9,  location:'Valencia',  verified:false },
-  { name:'PokéFan_ES',     color:'linear-gradient(135deg,#6e1a1a,#f53c3c)', rating:4.5, sales:44,  listings:6,  location:'Sevilla',   verified:false },
-];
-
-const SETS = ['Obsidian Flames','Paldea Evolved','151','Temporal Forces','Twilight Masquerade','Paradox Rift','Paldean Fates','Scarlet & Violet Base'];
+// ---- DATA (loaded from Supabase in production) ----
+const PRODUCTS = [];
+const SELLERS = [];
+const SETS = [];
 
 let currentType = 'all';
 let currentTab  = 'product';
@@ -560,6 +538,20 @@ function switchTab(tab, btn) {
 }
 
 init();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  const navRight = document.getElementById('navRight');
+  if (user) {
+    const initial = (user.email||'U')[0].toUpperCase();
+    navRight.innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
+  } else {
+    navRight.innerHTML = `<button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button><button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>`;
+  }
+})();
 </script>
 </body>
 </html>

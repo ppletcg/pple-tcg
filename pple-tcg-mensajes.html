@@ -216,10 +216,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab active">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <button class="notif-btn" title="Notificaciones">🔔<div class="notif-dot"></div></button>
-    <div class="nav-avatar" title="Mi perfil">T</div>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <div class="msgs-layout">
@@ -313,67 +310,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 
 <script>
 // ---- DATA ----
-const ME = { name:'TrainerJuan', initial:'J', color:'linear-gradient(135deg,#3d2a6e,#d4f53c)' };
+let ME = { name:'Usuario', initial:'U', color:'linear-gradient(135deg,#3d2a6e,#d4f53c)' };
 
-const CONVERSATIONS = [
-  {
-    id:1, user:'TrainerRed99', initial:'T', color:'linear-gradient(135deg,#1a1a2e,#e94560)',
-    status:'online', type:'compra',
-    card:{ name:'Charizard ex', set:'Obsidian Flames', price:'€124.50', cond:'NM', img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png' },
-    last:'¿Puedes hacer envío mañana?', time:'14:32', unread:true,
-    messages:[
-      { from:'them', text:'Hola! Me interesa la Charizard ex. ¿Sigue disponible?', time:'14:15' },
-      { from:'me', text:'¡Sí! Está en perfecto estado NM, nunca jugada.', time:'14:18' },
-      { from:'them', text:'¿Tienes más fotos del dorso? Quiero ver que no tenga marcas.', time:'14:22' },
-      { from:'me', text:'Claro, ahora te mando.', time:'14:23' },
-      { type:'system', text:'TrainerJuan envió 2 fotos adicionales' },
-      { from:'them', text:'Perfecta, la tomo. ¿Aceptas €115?', time:'14:28', isOffer:true, amount:'115.00', cardName:'Charizard ex' },
-      { from:'me', text:'No bajo de €120, es el precio de Cardmarket esta semana.', time:'14:30' },
-      { from:'them', text:'¿Puedes hacer envío mañana?', time:'14:32' },
-    ]
-  },
-  {
-    id:2, user:'CardShopMadrid', initial:'C', color:'linear-gradient(135deg,#0f3460,#533483)',
-    status:'offline', type:'compra',
-    card:{ name:'Pikachu ex', set:'Paldea Evolved', price:'€84.20', cond:'NM', img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png' },
-    last:'Enviado con Correos Express 📦', time:'Ayer', unread:false,
-    messages:[
-      { from:'them', text:'Buenas tardes, ¿el Pikachu ex sigue disponible?', time:'11:00' },
-      { from:'me', text:'Sí, disponible. ¿Qué estado buscas?', time:'11:05' },
-      { from:'them', text:'NM o Near Mint, preferiblemente sin sleeve previo.', time:'11:08' },
-      { from:'me', text:'Esta nunca fue sleeve. Va directamente en toploader desde el sobre.', time:'11:10' },
-      { type:'system', text:'Transacción completada · €84.20' },
-      { from:'them', text:'Enviado con Correos Express 📦', time:'16:45' },
-    ]
-  },
-  {
-    id:3, user:'PokéCollector_ES', initial:'P', color:'linear-gradient(135deg,#2d6a4f,#d4f53c)',
-    status:'online', type:'venta',
-    card:{ name:'Mewtwo ex', set:'Scarlet & Violet 151', price:'€210.00', cond:'PSA 10', img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png', isSlab:true },
-    last:'La PSA 10 tiene cert #45821937', time:'11:20', unread:true,
-    messages:[
-      { from:'me', text:'Hola, vi tu Mewtwo ex PSA 10. ¿Tienes foto del certificado?', time:'10:55' },
-      { from:'them', text:'Claro, aquí está. Cert PSA #45821937, gradeada en julio 2024.', time:'11:02' },
-      { type:'system', text:'PokéCollector_ES compartió el certificado PSA' },
-      { from:'me', text:'¿Aceptas €195?', time:'11:15', isOffer:true, amount:'195.00', cardName:'Mewtwo ex PSA 10' },
-      { from:'them', text:'No puedo bajar de €205, llevo 3 semanas sin venderla y ya tuve una oferta de €200 que rechacé.', time:'11:18' },
-      { from:'them', text:'La PSA 10 tiene cert #45821937', time:'11:20' },
-    ]
-  },
-  {
-    id:4, user:'PokeMarket_EU', initial:'P', color:'linear-gradient(135deg,#7b2d8b,#d4f53c)',
-    status:'offline', type:'venta',
-    card:{ name:'Umbreon ex', set:'Temporal Forces', price:'€67.30', cond:'LP', img:'https://assets.tcgdex.net/univ/sv/sv05/95/high.png' },
-    last:'De acuerdo, cerramos a €65', time:'Lun', unread:false,
-    messages:[
-      { from:'me', text:'Hola, el Umbreon ex LP, ¿cuánto marca exactamente la condición?', time:'09:30' },
-      { from:'them', text:'Un arañazo muy leve en el dorso, apenas visible. El frontal perfecto.', time:'09:45' },
-      { from:'me', text:'¿Bajarías a €65? Dado que es LP.', time:'10:00' },
-      { from:'them', text:'De acuerdo, cerramos a €65', time:'10:15' },
-      { type:'system', text:'Oferta aceptada · €65.00' },
-    ]
-  },
-];
+const CONVERSATIONS = [];
 
 let currentConv = null;
 let convFilter = 'all';
@@ -389,7 +328,7 @@ function renderConvList(filter='', tab='all') {
   });
 
   if (!convs.length) {
-    list.innerHTML = '<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:var(--text3)">Sin conversaciones</div>';
+    list.innerHTML = '<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);line-height:1.6;">No tienes mensajes aún.<br>Las conversaciones aparecerán aquí.</div>';
     return;
   }
 
@@ -537,38 +476,6 @@ function sendMessage() {
   autoResize(input);
   renderMessages(currentConv);
   renderConvList('', convFilter);
-
-  // Simulate reply after delay
-  simulateReply();
-}
-
-function simulateReply() {
-  if (!currentConv) return;
-  const replies = [
-    '¡Perfecto! Te confirmo en un momento.',
-    'De acuerdo, lo compruebo.',
-    'Sí, puedo hacer el envío mañana.',
-    '¿Me puedes decir tu código postal para calcular el envío?',
-    'Genial, le doy un último vistazo y cerramos.',
-  ];
-
-  setTimeout(() => {
-    const ti = document.getElementById('typingIndicator');
-    if (ti) ti.classList.add('show');
-    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-  }, 600);
-
-  setTimeout(() => {
-    const ti = document.getElementById('typingIndicator');
-    if (ti) ti.classList.remove('show');
-    const reply = replies[Math.floor(Math.random()*replies.length)];
-    const now = new Date();
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
-    currentConv.messages.push({ from:'them', text:reply, time });
-    currentConv.last = reply;
-    renderMessages(currentConv);
-    renderConvList('', convFilter);
-  }, 2400);
 }
 
 function handleKey(e) {
@@ -610,26 +517,6 @@ function submitOffer() {
   currentConv.last = `Oferta: €${parseFloat(v).toFixed(2)}`;
   renderMessages(currentConv);
   renderConvList('', convFilter);
-  // Simulate response
-  setTimeout(() => {
-    const ti = document.getElementById('typingIndicator');
-    if (ti) ti.classList.add('show');
-  }, 1000);
-  setTimeout(() => {
-    const ti = document.getElementById('typingIndicator');
-    if (ti) ti.classList.remove('show');
-    const ref = parseFloat(currentConv.card.price.replace('€',''));
-    const offered = parseFloat(v);
-    const reply = offered >= ref*0.95
-      ? '¡Trato hecho! Procedo con el envío.'
-      : `Hmm, lo mínimo que puedo aceptar es €${(ref*0.95).toFixed(2)}.`;
-    const now2 = new Date();
-    const time2 = `${now2.getHours()}:${String(now2.getMinutes()).padStart(2,'0')}`;
-    currentConv.messages.push({ from:'them', text:reply, time:time2 });
-    currentConv.last = reply;
-    renderMessages(currentConv);
-    renderConvList('', convFilter);
-  }, 2800);
 }
 
 function acceptOffer(btn, amount) {
@@ -655,6 +542,17 @@ function buyNow() {
 
 // ---- INIT ----
 renderConvList();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
+  ME.name = user.email;
+  ME.initial = (user.email||'U')[0].toUpperCase();
+  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${ME.initial}</div>`;
+})();
 </script>
 </body>
 </html>

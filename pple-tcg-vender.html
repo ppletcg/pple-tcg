@@ -278,10 +278,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
-    <button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <div class="page-header">
@@ -582,6 +579,8 @@ let currentUser = null;
     return;
   }
   currentUser = user;
+  const initial = (user.email||'U')[0].toUpperCase();
+  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
 })();
 
 const BASE = 'https://api.tcgdex.net/v2/en';

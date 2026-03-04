@@ -217,17 +217,14 @@ svg.portfolio-chart{width:100%;height:180px;}
     <button class="nav-tab active">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <button class="btn-outline" onclick="openModal('raw')">+ Añadir carta</button>
-    <div class="nav-avatar">J</div>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <div class="page-header">
   <div class="ph-left">
     <div class="ph-eyebrow">Mi colección · Actualizado hoy</div>
     <div class="ph-title">PORTFOLIO</div>
-    <div class="ph-user">@TrainerJuan · Coleccionista desde 2021</div>
+    <div class="ph-user" id="phUser">—</div>
   </div>
   <div class="ph-right">
     <button class="btn-outline">Exportar CSV</button>
@@ -416,31 +413,10 @@ let searchTimer = null;
 
 // ---- PORTFOLIO DATA ----
 const portfolio = {
-  raw: [
-    { id:'sv3-3',    name:'Charizard ex',    set:'Obsidian Flames',   img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',   cond:'NM', price:124.50, paid:89.00,  forSale:true  },
-    { id:'sv2-83',   name:'Pikachu ex',      set:'Paldea Evolved',    img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png',  cond:'NM', price:84.20,  paid:60.00,  forSale:false },
-    { id:'sv5-95',   name:'Umbreon ex',      set:'Temporal Forces',   img:'https://assets.tcgdex.net/univ/sv/sv05/95/high.png',  cond:'LP', price:67.30,  paid:55.00,  forSale:false },
-    { id:'sv4-84',   name:'Gardevoir ex',    set:'Paradox Rift',      img:'https://assets.tcgdex.net/univ/sv/sv04/84/high.png',  cond:'NM', price:45.80,  paid:32.00,  forSale:false },
-    { id:'sv6-210',  name:'Iron Valiant ex', set:'Twilight Masquerade',img:'https://assets.tcgdex.net/univ/sv/sv06/210/high.png',cond:'NM', price:38.20,  paid:28.00,  forSale:true  },
-    { id:'sv1-198',  name:'Miraidon ex',     set:'Scarlet & Violet',  img:'https://assets.tcgdex.net/univ/sv/sv01/198/high.png', cond:'NM', price:52.40,  paid:44.00,  forSale:false },
-  ],
-  psa: [
-    { id:'sv3pt5-11',name:'Mewtwo ex',       set:'151',               img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png',grade:'PSA10',price:210.00,paid:145.00,forSale:false,cert:'45821937' },
-    { id:'sv03-125', name:'Tyranitar ex',    set:'Obsidian Flames',   img:'https://assets.tcgdex.net/univ/sv/sv03/125/high.png', grade:'PSA9', price:89.00, paid:65.00, forSale:true, cert:'45821938' },
-    { id:'sv02-201', name:'Sylveon ex',      set:'Paldea Evolved',    img:'https://assets.tcgdex.net/univ/sv/sv02/201/high.png', grade:'PSA9', price:55.00, paid:38.00, forSale:false,cert:'45821939' },
-  ],
-  sealed: [
-    { name:'Booster Box Obsidian Flames',  set:'Obsidian Flames',  type:'Booster Box', price:185.00, paid:130.00, trend:'+42%', qty:1,   img:'📦' },
-    { name:'Elite Trainer Box 151',        set:'Scarlet & Violet 151',type:'ETB',      price:89.00,  paid:65.00,  trend:'+37%', qty:2,   img:'🎁' },
-    { name:'Booster Bundle Temporal Forces',set:'Temporal Forces', type:'Bundle',      price:38.00,  paid:28.00,  trend:'+36%', qty:3,   img:'📦' },
-    { name:'Charizard ex Premium Collection',set:'Promos',         type:'Collection', price:62.00,  paid:49.99,  trend:'+24%', qty:1,   img:'⭐' },
-  ],
-  wishlist: [
-    { id:'sv06-191', name:'Pecharunt ex',    set:'Twilight Masquerade',img:'https://assets.tcgdex.net/univ/sv/sv06/191/high.png', price:28.70, target:24.00 },
-    { id:'sv3pt5-205',name:'Mew ex',         set:'151',               img:'https://assets.tcgdex.net/univ/sv/sv3pt5/205/high.png',price:32.10, target:25.00 },
-    { id:'sv05-176', name:'Terapagos ex',    set:'Temporal Forces',   img:'https://assets.tcgdex.net/univ/sv/sv05/176/high.png',  price:41.50, target:35.00 },
-    { id:'sv04-197', name:'Walking Wake ex', set:'Paradox Rift',      img:'https://assets.tcgdex.net/univ/sv/sv04/197/high.png',  price:19.80, target:15.00 },
-  ]
+  raw: [],
+  psa: [],
+  sealed: [],
+  wishlist: []
 };
 
 // ---- COMPUTE TOTALS ----
@@ -740,6 +716,17 @@ function addToPortfolio() {
 const total=computeTotals();
 renderGrids();
 drawPortfolioChart(currentPeriod,total);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
+  const initial = (user.email||'U')[0].toUpperCase();
+  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
+  document.getElementById('phUser').textContent = user.email;
+})();
 </script>
 </body>
 </html>

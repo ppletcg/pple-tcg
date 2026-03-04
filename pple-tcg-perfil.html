@@ -196,34 +196,27 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
-    <button class="btn-accent">Registrarse</button>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <!-- PROFILE HEADER -->
 <div class="profile-header">
   <div class="ph-glow"></div>
   <div class="ph-inner">
-    <div class="ph-avatar">T</div>
+    <div class="ph-avatar" id="phAvatar">?</div>
     <div class="ph-info">
       <div class="ph-top">
-        <div class="ph-username">TrainerRed99</div>
-        <div class="ph-verified">✓ Verificado</div>
+        <div class="ph-username" id="phUsername">—</div>
         <div class="ph-type">Particular</div>
       </div>
       <div class="ph-meta">
         <div class="ph-meta-item">
           <div class="stars" id="headerStars"></div>
-          <span class="rating-num">4.9</span>
-          <span class="rating-count">(127 valoraciones)</span>
+          <span class="rating-num">—</span>
+          <span class="rating-count">(0 valoraciones)</span>
         </div>
-        <div class="ph-meta-item">📍 Madrid, España</div>
-        <div class="ph-meta-item">📅 Miembro desde enero 2023</div>
-        <div class="ph-meta-item">⚡ Responde en menos de 1h</div>
       </div>
-      <div class="ph-desc">Coleccionista de Pokémon TCG especializado en cartas de la era Scarlet & Violet y japonesas. Siempre envío en toploader y manga con seguimiento. ¡Pregunta sin compromiso!</div>
+      <div class="ph-desc" id="phDesc" style="color:var(--text3);font-style:italic;">Aún no has añadido una descripción.</div>
     </div>
     <div class="ph-actions">
       <button class="btn-follow" id="btnFollow" onclick="toggleFollow()">+ Seguir</button>
@@ -237,23 +230,23 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 <div class="stats-bar">
   <div class="stats-inner">
     <div class="stat-item">
-      <div class="si-val accent">247</div>
+      <div class="si-val accent">0</div>
       <div class="si-label">Ventas totales</div>
     </div>
     <div class="stat-item">
-      <div class="si-val green">99.2%</div>
+      <div class="si-val green">—</div>
       <div class="si-label">Valoración positiva</div>
     </div>
     <div class="stat-item">
-      <div class="si-val">18</div>
+      <div class="si-val">0</div>
       <div class="si-label">Cartas en venta</div>
     </div>
     <div class="stat-item">
-      <div class="si-val">&lt;1h</div>
+      <div class="si-val">—</div>
       <div class="si-label">Tiempo de respuesta</div>
     </div>
     <div class="stat-item">
-      <div class="si-val green">4.9</div>
+      <div class="si-val green">—</div>
       <div class="si-label">Puntuación media</div>
     </div>
   </div>
@@ -270,7 +263,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
       <div class="sec-header">
         <div>
           <div class="sec-title">EN VENTA AHORA</div>
-          <div class="sec-meta">18 cartas publicadas</div>
+          <div class="sec-meta">0 cartas publicadas</div>
         </div>
         <span class="sec-link" onclick="window.location.href='pple-tcg.html'">Ver todas →</span>
       </div>
@@ -293,7 +286,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
       <div class="sec-header">
         <div>
           <div class="sec-title">VALORACIONES</div>
-          <div class="sec-meta">127 reseñas verificadas</div>
+          <div class="sec-meta">0 reseñas verificadas</div>
         </div>
       </div>
 
@@ -354,112 +347,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 </div>
 
 <script>
-// ---- DATA ----
-const LISTINGS = [
-  { name:'Charizard ex',     set:'Obsidian Flames', img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',    price:124.50, cond:'NM',    verified:true },
-  { name:'Pikachu ex',       set:'Paldea Evolved',  img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png',   price:84.20,  cond:'NM',    verified:true },
-  { name:'Mewtwo ex',        set:'151',             img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png', price:210.00, cond:'PSA 10',verified:true },
-  { name:'Umbreon ex',       set:'Temporal Forces', img:'https://assets.tcgdex.net/univ/sv/sv05/95/high.png',   price:67.30,  cond:'LP',    verified:false },
-  { name:'Gardevoir ex',     set:'Paradox Rift',    img:'https://assets.tcgdex.net/univ/sv/sv04/84/high.png',   price:45.80,  cond:'NM',    verified:true },
-  { name:'Iron Valiant ex',  set:'Twilight Masq.',  img:'https://assets.tcgdex.net/univ/sv/sv06/210/high.png',  price:38.20,  cond:'NM',    verified:false },
-  { name:'Miraidon ex',      set:'Scarlet & Violet',img:'https://assets.tcgdex.net/univ/sv/sv01/198/high.png',  price:52.40,  cond:'NM',    verified:true },
-  { name:'Tyranitar ex',     set:'Obsidian Flames', img:'https://assets.tcgdex.net/univ/sv/sv03/125/high.png',  price:89.00,  cond:'PSA 9', verified:true },
-];
-
-const SALES = [
-  { name:'Rayquaza ex',      set:'Obsidian Flames',  img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',    price:145.00, date:'24 Feb 2026', buyer:'pokefan_es' },
-  { name:'Eevee ex',         set:'151',              img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png', price:28.50,  date:'22 Feb 2026', buyer:'CardHunter' },
-  { name:'Blastoise ex',     set:'Paldea Evolved',   img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png',   price:61.00,  date:'19 Feb 2026', buyer:'JuanTrainer' },
-  { name:'Sylveon ex',       set:'Paldea Evolved',   img:'https://assets.tcgdex.net/univ/sv/sv02/201/high.png',  price:55.00,  date:'17 Feb 2026', buyer:'PokeCollect' },
-  { name:'Terapagos ex',     set:'Temporal Forces',  img:'https://assets.tcgdex.net/univ/sv/sv05/176/high.png',  price:41.50,  date:'14 Feb 2026', buyer:'tcg_madrid' },
-];
-
-const REVIEWS = [
-  { user:'pokefan_es',  color:'linear-gradient(135deg,#1a1a2e,#e94560)', stars:5, date:'24 Feb 2026',
-    text:'Vendedor excelente. La carta llegó perfectamente embalada en toploader y manga blanda. Exactamente como se describe, NM total. Envío rapidísimo, en 24h ya la tenía en casa. 100% recomendable.', card:'Rayquaza ex' },
-  { user:'CardHunter', color:'linear-gradient(135deg,#0f3460,#533483)', stars:5, date:'22 Feb 2026',
-    text:'Todo perfecto. Muy buen comunicador, respondió todas mis dudas antes de comprar. La Eevee ex llegó en condiciones impecables.', card:'Eevee ex' },
-  { user:'JuanTrainer', color:'linear-gradient(135deg,#2d6a4f,#d4f53c)', stars:4, date:'19 Feb 2026',
-    text:'Buen vendedor, carta en buen estado. Tardó un poco más de lo esperado en enviarla (3 días) pero llegó bien protegida y en el estado descrito.', card:'Blastoise ex' },
-  { user:'PokeCollect', color:'linear-gradient(135deg,#7b2d8b,#d4f53c)', stars:5, date:'17 Feb 2026',
-    text:'Perfecta transacción. El vendedor muy atento y la carta venía con sleeve y toploader de calidad. Repetiré sin duda.', card:'Sylveon ex' },
-];
-
-const RATING_DIST = { 5:118, 4:6, 3:2, 2:1, 1:0 };
-
 // ---- RENDER ----
 function renderStars(n, container) {
   container.innerHTML = [1,2,3,4,5].map(i =>
     `<span class="star ${i<=n?'':'empty'}">★</span>`).join('');
 }
 
-function renderHeaderStars() {
-  renderStars(5, document.getElementById('headerStars'));
+function renderEmptyState(containerId, message) {
+  document.getElementById(containerId).innerHTML =
+    `<div style="padding:24px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);border:1.5px dashed var(--border);border-radius:8px;">${message}</div>`;
 }
 
-function renderListings() {
-  document.getElementById('listingsGrid').innerHTML = LISTINGS.map(l => {
-    const isPsa = l.cond.startsWith('PSA');
-    const badgeClass = isPsa ? 'lc-psa' : l.cond==='NM' ? 'lc-nm' : 'lc-lp';
-    return `
-    <div class="listing-card">
-      <div class="lc-img">
-        <img src="${l.img}" alt="${l.name}" onerror="this.parentNode.innerHTML='🎴'">
-        <div class="lc-badge ${badgeClass}">${l.cond}</div>
-        ${l.verified ? '<div class="lc-verified">✓</div>' : ''}
-      </div>
-      <div class="lc-body">
-        <div class="lc-name">${l.name}</div>
-        <div class="lc-set">${l.set}</div>
-        <div class="lc-price">€${l.price.toFixed(2)}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+// ---- INIT ----
+renderStars(0, document.getElementById('headerStars'));
+renderEmptyState('listingsGrid', 'Aún no tienes cartas en venta.');
+renderEmptyState('salesList', 'Aún no has realizado ninguna venta.');
 
-function renderSales() {
-  document.getElementById('salesList').innerHTML = SALES.map(s => `
-    <div class="sale-item">
-      <img class="si-thumb" src="${s.img}" onerror="this.style.display='none'" alt="">
-      <div class="si-info">
-        <div class="si-name">${s.name}</div>
-        <div class="si-meta">${s.set} · Comprador: @${s.buyer}</div>
-      </div>
-      <div class="si-price">€${s.price.toFixed(2)}</div>
-      <div class="si-date">${s.date}</div>
-    </div>`).join('');
-}
+// Rating breakdown (empty)
+document.getElementById('ratingBreakdown').innerHTML = [5,4,3,2,1].map(n =>
+  `<div class="rb-row">
+    <span class="rb-stars">${n}★</span>
+    <div class="rb-bar-wrap"><div class="rb-bar" style="width:0%"></div></div>
+    <span class="rb-count">0</span>
+  </div>`).join('');
 
-function renderRatingBreakdown() {
-  const total = Object.values(RATING_DIST).reduce((a,b)=>a+b,0);
-  document.getElementById('ratingBreakdown').innerHTML = [5,4,3,2,1].map(n => {
-    const count = RATING_DIST[n] || 0;
-    const pct = total ? (count/total*100).toFixed(0) : 0;
-    return `<div class="rb-row">
-      <span class="rb-stars">${n}★</span>
-      <div class="rb-bar-wrap"><div class="rb-bar" style="width:${pct}%"></div></div>
-      <span class="rb-count">${count}</span>
-    </div>`;
-  }).join('');
-}
-
-function renderReviews() {
-  document.getElementById('reviewsList').innerHTML = REVIEWS.map(r => `
-    <div class="review-item">
-      <div class="ri-top">
-        <div class="ri-user">
-          <div class="ri-av" style="background:${r.color}">${r.user[0]}</div>
-          <div>
-            <div class="ri-name">@${r.user}</div>
-            <div class="ri-date">${r.date}</div>
-          </div>
-        </div>
-        <div class="ri-stars">${[1,2,3,4,5].map(i=>`<span class="ri-star ${i<=r.stars?'':'empty'}">★</span>`).join('')}</div>
-      </div>
-      <div class="ri-text">${r.text}</div>
-      <div class="ri-card">🃏 ${r.card}</div>
-    </div>`).join('');
-}
+renderEmptyState('reviewsList', 'Aún no tienes valoraciones.');
 
 let following = false;
 function toggleFollow() {
@@ -468,13 +380,24 @@ function toggleFollow() {
   btn.textContent = following ? '✓ Siguiendo' : '+ Seguir';
   btn.classList.toggle('following', following);
 }
-
-// ---- INIT ----
-renderHeaderStars();
-renderListings();
-renderSales();
-renderRatingBreakdown();
-renderReviews();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  const navRight = document.getElementById('navRight');
+  if (user) {
+    const initial = (user.email||'U')[0].toUpperCase();
+    navRight.innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
+    document.getElementById('phAvatar').textContent = initial;
+    document.getElementById('phUsername').textContent = user.email.split('@')[0];
+  } else {
+    navRight.innerHTML = `<button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button><button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>`;
+    document.getElementById('phAvatar').textContent = '?';
+    document.getElementById('phUsername').textContent = 'Invitado';
+  }
+})();
 </script>
 </body>
 </html>

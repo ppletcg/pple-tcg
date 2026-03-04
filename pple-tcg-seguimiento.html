@@ -212,318 +212,34 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <div class="nav-avatar">J</div>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <!-- PAGE HEADER -->
 <div class="page-header">
   <div>
-    <div class="ph-eyebrow">Mis envíos · 3 activos</div>
+    <div class="ph-eyebrow">Mis envíos</div>
     <div class="ph-title">SEGUIMIENTO</div>
   </div>
-
 </div>
 
-<div class="main">
-  <div class="left-col">
-
-    <!-- STATUS HERO -->
-    <div class="status-hero">
-      <div class="sh-glow"></div>
-      <div class="sh-top">
-        <div class="sh-left">
-          <div class="sh-status-label">Estado actual</div>
-          <div class="sh-status">
-            <div class="status-dot dot-transit"></div>
-            EN TRÁNSITO
-          </div>
-          <div style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text3);margin-top:6px;letter-spacing:0.3px;">
-            Centro logístico Madrid · Actualizado hace 2h
-          </div>
-        </div>
-        <div class="sh-eta">
-          <div class="sh-eta-label">Entrega estimada</div>
-          <div class="sh-eta-val">Mañana</div>
-          <div class="sh-eta-sub">28 Feb · 9:00–14:00h</div>
-        </div>
-      </div>
-      <div class="route-bar">
-        <div class="rb-point origin">
-          <div class="rbp-label">Origen</div>
-          <div class="rbp-city">Madrid</div>
-          <div class="rbp-addr">@TrainerRed99</div>
-        </div>
-        <div class="rb-point mid">
-          <div class="rb-arrow">→</div>
-          <div class="rb-progress" style="margin-top:6px"><div class="rbp-fill" style="width:65%"></div></div>
-          <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);margin-top:4px;">65%</div>
-        </div>
-        <div class="rb-point dest">
-          <div class="rbp-label">Destino</div>
-          <div class="rbp-city">Barcelona</div>
-          <div class="rbp-addr">@TrainerJuan</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAP -->
-    <div class="map-section">
-      <div class="map-header">
-        <div class="map-title">UBICACIÓN DEL PAQUETE</div>
-        <div class="map-carrier">
-          <div class="carrier-logo" style="background:#e60000;">C</div>
-          Correos Express · ES123456789ES
-        </div>
-      </div>
-      <div class="map-canvas" id="mapCanvas">
-        <!-- Spain map SVG -->
-        <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" id="spainMap"></svg>
-        <!-- Route line canvas -->
-        <canvas class="route-line" id="routeCanvas" width="800" height="600"></canvas>
-        <!-- Pins -->
-        <div class="map-pin" style="left:48%;top:55%">
-          <div class="pin-dot origin"></div>
-          <div class="pin-label">Madrid · Origen</div>
-        </div>
-        <div class="map-pin" style="left:52%;top:44%" id="currentPin">
-          <div class="pin-dot current"></div>
-          <div class="pin-label">📦 Aquí ahora</div>
-        </div>
-        <div class="map-pin" style="left:70%;top:32%">
-          <div class="pin-dot dest"></div>
-          <div class="pin-label">Barcelona · Destino</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TIMELINE -->
-    <div class="timeline-section">
-      <div class="tl-title">HISTORIAL DE EVENTOS</div>
-      <div class="timeline" id="timeline"></div>
-    </div>
-
-  </div>
-
-  <!-- RIGHT -->
-  <div class="right-col">
-
-    <!-- Card info -->
-    <div class="sidebar-card">
-      <div class="sc-title">ARTÍCULO</div>
-      <div class="card-preview">
-        <img class="cp-img" src="https://assets.tcgdex.net/univ/sv/sv03/3/high.png" onerror="this.style.background='var(--surface2)'" alt="">
-        <div class="cp-info">
-          <div class="cp-name">Charizard ex</div>
-          <div class="cp-set">Obsidian Flames · #003</div>
-          <div class="cp-price">€124.50</div>
-          <div class="cp-cond">NM</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Package details -->
-    <div class="sidebar-card">
-      <div class="sc-title">DATOS DEL ENVÍO</div>
-      <div class="pkg-row">
-        <span class="pkg-label">Transportista</span>
-        <span class="pkg-val">Correos Express</span>
-      </div>
-
-      <div class="pkg-row">
-        <span class="pkg-label">Servicio</span>
-        <span class="pkg-val">24h Certificado</span>
-      </div>
-      <div class="pkg-row">
-        <span class="pkg-label">Enviado</span>
-        <span class="pkg-val">26 Feb 2026</span>
-      </div>
-      <div class="pkg-row">
-        <span class="pkg-label">Entrega estimada</span>
-        <span class="pkg-val accent">28 Feb 2026</span>
-      </div>
-      <div class="pkg-row">
-        <span class="pkg-label">Estado</span>
-        <span class="pkg-val green">En tránsito</span>
-      </div>
-    </div>
-
-    <!-- Parties -->
-    <div class="sidebar-card">
-      <div class="sc-title">PARTES</div>
-      <div class="party-row">
-        <div class="party-av" style="background:linear-gradient(135deg,#1a1a2e,#e94560)">T</div>
-        <div class="party-info">
-          <div class="party-role">Vendedor</div>
-          <div class="party-name">@TrainerRed99</div>
-          <div class="party-rating">★ 4.9</div>
-        </div>
-        <button style="padding:5px 10px;border:1px solid var(--border2);border-radius:5px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.62rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'" onclick="window.location.href='pple-tcg-mensajes.html'">💬</button>
-      </div>
-      <div class="party-row">
-        <div class="party-av" style="background:linear-gradient(135deg,#3d2a6e,#d4f53c)">J</div>
-        <div class="party-info">
-          <div class="party-role">Comprador (tú)</div>
-          <div class="party-name">@TrainerJuan</div>
-          <div class="party-rating">Barcelona, España</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="sidebar-card">
-      <div class="sc-title">ACCIONES</div>
-      <button class="action-btn ab-primary" onclick="openConfirmModal()">✓ Confirmar recepción</button>
-      <div style="padding:10px 12px;background:var(--accent-dim);border:1px solid rgba(212,245,60,0.15);border-radius:6px;font-family:var(--font-mono);font-size:0.65rem;color:var(--text2);line-height:1.6;letter-spacing:0.3px;">📧 El número de seguimiento te fue enviado por email al confirmar la compra</div>
-      <button class="action-btn ab-secondary" onclick="window.location.href='pple-tcg-mensajes.html'">💬 Contactar al vendedor</button>
-      <button class="action-btn ab-danger">⚑ Reportar problema</button>
-    </div>
-
-    <!-- Other shipments -->
-    <div class="sidebar-card">
-      <div class="sc-title">MIS ENVÍOS</div>
-      <div class="shipments-list" id="shipmentsList"></div>
-    </div>
-
+<div class="main" style="display:block;padding:80px 40px;">
+  <div style="text-align:center;max-width:420px;margin:0 auto;">
+    <div style="font-size:3rem;margin-bottom:20px;opacity:0.4;">📦</div>
+    <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:2px;color:var(--text2);margin-bottom:10px;">NO TIENES ENVÍOS ACTIVOS</div>
+    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.5px;line-height:1.8;">Aquí verás el seguimiento de tus compras y ventas cuando tengas envíos en curso.</div>
   </div>
 </div>
 
-<!-- CONFIRM DELIVERY MODAL -->
-<div class="modal-overlay" id="confirmModal" onclick="closeModal(event)">
-  <div class="modal">
-    <div class="modal-icon">📦</div>
-    <div class="modal-title">¿HAS RECIBIDO EL PAQUETE?</div>
-    <div class="modal-sub">Al confirmar la recepción, los fondos se liberarán al vendedor y podrás dejar una valoración. Esta acción no se puede deshacer.</div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="document.getElementById('confirmModal').classList.remove('open')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmDelivery()">✓ Sí, lo he recibido</button>
-    </div>
-  </div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-// ---- TIMELINE DATA ----
-const EVENTS = [
-  { status:'done',    icon:'✓', event:'Enviado',       detail:'El vendedor ha entregado el paquete al transportista',  time:'26 Feb · 09:22h' },
-  { status:'current', icon:'→', event:'En tránsito',   detail:'Correos Express · En camino hacia Barcelona',           time:'27 Feb · 06:40h' },
-  { status:'pending', icon:'○', event:'Entregado',     detail:'Confirma la recepción cuando llegue',                   time:'Estimado: 28 Feb' },
-];
-
-const SHIPMENTS = [
-  { name:'Charizard ex',    img:'https://assets.tcgdex.net/univ/sv/sv03/3/high.png',    status:'transit',   statusLabel:'En tránsito', role:'Comprando', tracking:'ES123456789ES' },
-  { name:'Pikachu ex',      img:'https://assets.tcgdex.net/univ/sv/sv02/83/high.png',   status:'delivered', statusLabel:'Entregado',   role:'Comprando', tracking:'ES987654321ES' },
-  { name:'Mewtwo ex PSA 10',img:'https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png', status:'pending',   statusLabel:'Pendiente',   role:'Vendiendo', tracking:'—' },
-];
-
-// ---- RENDER TIMELINE ----
-function renderTimeline() {
-  document.getElementById('timeline').innerHTML = EVENTS.map((e, i) => `
-    <div class="tl-item ${e.status}">
-      <div class="tl-line"></div>
-      <div class="tl-icon-wrap ${e.status}">${e.icon}</div>
-      <div class="tl-content">
-        <div class="tl-event">${e.event}</div>
-        <div class="tl-detail">${e.detail}</div>
-        <div class="tl-time">${e.time}</div>
-      </div>
-    </div>`).join('');
-}
-
-// ---- RENDER OTHER SHIPMENTS ----
-function renderShipments() {
-  document.getElementById('shipmentsList').innerHTML = SHIPMENTS.map((s, i) => `
-    <div class="shipment-item ${i===0?'active':''}" onclick="selectShipment(${i})">
-      <img class="si-thumb" src="${s.img}" onerror="this.style.display='none'" alt="">
-      <div class="si-info">
-        <div class="si-name">${s.name}</div>
-        <div class="si-meta">${s.role} · ${s.tracking}</div>
-      </div>
-      <div class="si-status sis-${s.status}">${s.statusLabel}</div>
-    </div>`).join('');
-}
-
-function selectShipment(i) {
-  document.querySelectorAll('.shipment-item').forEach((el, idx) => {
-    el.classList.toggle('active', idx === i);
-  });
-}
-
-// ---- MAP ----
-function drawMap() {
-  const canvas = document.getElementById('spainMap');
-  // Simple Spain outline as SVG path
-  canvas.innerHTML = `
-    <defs>
-      <radialGradient id="mapGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#1a1a30" stop-opacity="1"/>
-        <stop offset="100%" stop-color="#08080d" stop-opacity="1"/>
-      </radialGradient>
-      <filter id="blur">
-        <feGaussianBlur stdDeviation="1"/>
-      </filter>
-    </defs>
-    <rect width="800" height="600" fill="url(#mapGlow)"/>
-    <!-- Grid lines -->
-    ${Array.from({length:8},(_,i)=>`<line x1="${i*100+50}" y1="0" x2="${i*100+50}" y2="600" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
-    ${Array.from({length:6},(_,i)=>`<line x1="0" y1="${i*100+50}" x2="800" y2="${i*100+50}" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>`).join('')}
-    <!-- Spain outline (simplified) -->
-    <path d="M 120,200 L 100,240 L 80,280 L 90,320 L 130,360 L 160,400 L 200,430 L 260,440 L 320,450 L 380,445 L 440,430 L 500,400 L 540,370 L 580,330 L 600,290 L 610,250 L 590,210 L 560,180 L 520,160 L 480,150 L 440,145 L 400,140 L 360,138 L 320,140 L 280,148 L 240,160 L 200,175 L 160,188 Z"
-          fill="rgba(212,245,60,0.04)" stroke="rgba(212,245,60,0.15)" stroke-width="1.5"/>
-    <!-- Route SVG line -->
-    <path d="M 395,315 Q 450,270 555,225" stroke="rgba(212,245,60,0.3)" stroke-width="2" stroke-dasharray="8,4" fill="none"/>
-    <!-- Current position glow -->
-    <circle cx="468" cy="270" r="18" fill="rgba(255,165,2,0.08)"/>
-    <circle cx="468" cy="270" r="8" fill="rgba(255,165,2,0.15)"/>
-  `;
-}
-
-// ---- ACTIONS ----
-function openConfirmModal() {
-  document.getElementById('confirmModal').classList.add('open');
-}
-
-function closeModal(e) {
-  if (e.target === document.getElementById('confirmModal'))
-    document.getElementById('confirmModal').classList.remove('open');
-}
-
-function confirmDelivery() {
-  document.getElementById('confirmModal').classList.remove('open');
-  // Update status
-  const dot = document.querySelector('.status-dot');
-  dot.className = 'status-dot dot-delivered';
-  document.querySelector('.sh-status').innerHTML = '<div class="status-dot dot-delivered"></div> ENTREGADO';
-  document.querySelector('.sh-eta-val').textContent = '✓ Recibido';
-  document.querySelector('.sh-eta-sub').textContent = '27 Feb · Hoy';
-  // Update last timeline item
-  const items = document.querySelectorAll('.tl-item');
-  items.forEach(el => {
-    el.classList.remove('current','pending');
-    el.classList.add('done');
-    el.querySelector('.tl-icon-wrap').className = 'tl-icon-wrap done';
-    el.querySelector('.tl-icon-wrap').textContent = '✓';
-  });
-}
-
-
-
-
-function openCarrierWeb() {
-  const urls = {
-    correos: 'https://www.correos.es/es/es/herramientas/localizador/envios/index.html',
-    correos_express: 'https://www.correosexpress.com/web/correosexpress/home',
-    seur: 'https://www.seur.com/seguimiento-online.do',
-    inpost: 'https://inpost.es/seguimiento',
-  };
-  // Default to Correos Express for this demo
-  window.open(urls['correos_express'], '_blank');
-}
-
-// ---- INIT ----
-renderTimeline();
-renderShipments();
-drawMap();
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
+  const initial = (user.email||'U')[0].toUpperCase();
+  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
+})();
 </script>
 </body>
 </html>

@@ -268,7 +268,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
+  <div class="nav-right" id="navRight">
     <button class="btn-accent" onclick="openOrderModal('ai')">Verificar carta</button>
   </div>
 </nav>
@@ -552,45 +552,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
           <th>Pedido</th>
         </tr>
       </thead>
-      <tbody>
-        <tr class="ht-row">
-          <td>
-            <div class="ht-card">
-              <img class="ht-thumb" src="https://assets.tcgdex.net/univ/sv/sv03/3/high.png" onerror="this.style.display='none'" alt="">
-              <div><div class="ht-name">Charizard ex</div><div class="ht-set">Obsidian Flames</div></div>
-            </div>
-          </td>
-          <td><span class="svc-tag tag-manual">Manual</span></td>
-          <td><span class="status-pill status-ok">✓ Completado</span></td>
-          <td><span class="result-grade rg-auth">✓ Auténtica</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3)">14 Feb 2026</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent)">#VRF-00124</span></td>
-        </tr>
-        <tr class="ht-row">
-          <td>
-            <div class="ht-card">
-              <img class="ht-thumb" src="https://assets.tcgdex.net/univ/sv/sv3pt5/11/high.png" onerror="this.style.display='none'" alt="">
-              <div><div class="ht-name">Mewtwo ex</div><div class="ht-set">151</div></div>
-            </div>
-          </td>
-          <td><span class="svc-tag tag-pre">Pre-grading</span></td>
-          <td><span class="status-pill status-ok">✓ Completado</span></td>
-          <td><span class="result-grade rg-10">PSA 10 est.</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3)">2 Feb 2026</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent)">#VRF-00098</span></td>
-        </tr>
-        <tr class="ht-row">
-          <td>
-            <div class="ht-card">
-              <img class="ht-thumb" src="https://assets.tcgdex.net/univ/sv/sv02/83/high.png" onerror="this.style.display='none'" alt="">
-              <div><div class="ht-name">Pikachu ex</div><div class="ht-set">Paldea Evolved</div></div>
-            </div>
-          </td>
-          <td><span class="svc-tag tag-ai">IA</span></td>
-          <td><span class="status-pill status-transit">✈ En tránsito</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text3)">Pendiente</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3)">25 Feb 2026</span></td>
-          <td><span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--accent)">#VRF-00201</span></td>
+      <tbody id="historyBody">
+        <tr>
+          <td colspan="6" style="padding:32px;text-align:center;font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);">Aún no tienes verificaciones. ¡Contrata tu primera verificación arriba!</td>
         </tr>
       </tbody>
     </table>
@@ -709,6 +673,20 @@ function copyAddress() {
     setTimeout(() => { btn.textContent = 'Copiar dirección'; btn.classList.remove('copied'); }, 2000);
   });
 }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
+  const { data: { user } } = await sb.auth.getUser();
+  const navRight = document.getElementById('navRight');
+  if (user) {
+    const initial = (user.email||'U')[0].toUpperCase();
+    navRight.innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div><button class="btn-accent" onclick="openOrderModal('ai')">Verificar carta</button>`;
+  } else {
+    navRight.innerHTML = `<button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button><button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>`;
+  }
+})();
 </script>
 </body>
 </html>
