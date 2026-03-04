@@ -159,6 +159,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 
 /* Condition selector */
 .cond-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dtype-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dtype-opt{padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;text-align:center;}
+.dtype-opt:hover{border-color:var(--border2);}
+.dtype-opt.selected{border-color:var(--accent);background:var(--accent-dim);}
+.dtype-badge{font-family:var(--font-mono);font-size:0.75rem;font-weight:700;letter-spacing:1px;color:var(--accent);margin-bottom:4px;}
+.dtype-desc{font-size:0.72rem;color:var(--text3);}
 .cond-opt{padding:12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;text-align:center;}
 .cond-opt:hover{border-color:var(--border2);}
 .cond-opt.selected-nm{border-color:var(--nm);background:var(--nm-bg);}
@@ -378,6 +384,25 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 
     <div class="form-grid">
 
+      <!-- DISPLAY TYPE -->
+      <div class="form-group full">
+        <div class="fg-label">Tipo de presentación</div>
+        <div class="dtype-selector">
+          <div class="dtype-opt" onclick="selectDisplayType('raw',this)">
+            <div class="dtype-badge">RAW</div>
+            <div class="dtype-desc">Carta suelta sin graduar</div>
+          </div>
+          <div class="dtype-opt" onclick="selectDisplayType('slab',this)">
+            <div class="dtype-badge">SLAB</div>
+            <div class="dtype-desc">Carta graduada (PSA, CGC…)</div>
+          </div>
+          <div class="dtype-opt" onclick="selectDisplayType('sealed',this)">
+            <div class="dtype-badge">SEALED</div>
+            <div class="dtype-desc">Producto precintado/sellado</div>
+          </div>
+        </div>
+      </div>
+
       <!-- CONDITION -->
       <div class="form-group full">
         <div class="fg-label">Estado de la carta</div>
@@ -536,11 +561,31 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://iijreiuecodmqlcvhapp.supabase.co',
+  'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
+);
+
+let currentUser = null;
+
+// Auth check on load
+(async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    window.location.href = 'pple-tcg-auth.html';
+    return;
+  }
+  currentUser = user;
+})();
+
 const BASE = 'https://api.tcgdex.net/v2/en';
 let selectedCard = null;
 let selectedCond = null;
 let selectedShipping = null;
+let selectedDisplayType = null;
 let uploadedPhoto = null;
 let currentStep = 1;
 
@@ -821,6 +866,13 @@ function populateStep2() {
   }
 }
 
+function selectDisplayType(type, el) {
+  selectedDisplayType = type;
+  document.querySelectorAll('.dtype-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  validateStep2();
+}
+
 function selectCond(cond, el) {
   selectedCond = cond;
   document.querySelectorAll('.cond-opt').forEach(e => e.classList.remove('selected-nm','selected-lp','selected-mp'));
@@ -837,7 +889,7 @@ function selectShipping(type, el) {
 
 function validateStep2() {
   const price = parseFloat(document.getElementById('sellPrice').value);
-  const valid = selectedCond && selectedShipping && price > 0;
+  const valid = selectedCond && selectedShipping && selectedDisplayType && price > 0;
   document.getElementById('btnStep2Next').disabled = !valid;
   return valid;
 }
@@ -888,8 +940,38 @@ function populateStep3() {
 
 }
 
-function publishListing() {
-  // In real app: save to DB, navigate to listing
+async function publishListing() {
+  if (!currentUser) {
+    window.location.href = 'pple-tcg-auth.html';
+    return;
+  }
+
+  const btn = document.querySelector('#step3 .btn-next');
+  btn.disabled = true;
+  btn.textContent = 'Publicando...';
+
+  const price = parseFloat(document.getElementById('sellPrice').value);
+  const description = document.getElementById('sellNotes').value.trim();
+  const imgUrl = selectedCard._imageUrl || (selectedCard.image ? selectedCard.image + '/low.png' : null);
+
+  const { error } = await sb.from('listings').insert({
+    seller_id: currentUser.id,
+    card_name: selectedCard.name,
+    card_set: selectedCard.set?.name || null,
+    card_image: imgUrl,
+    display_type: selectedDisplayType,
+    condition: selectedCond,
+    price: price,
+    description: description || null
+  });
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Publicar anuncio ✓';
+    alert('Error al publicar: ' + error.message);
+    return;
+  }
+
   document.getElementById('step3').classList.remove('active');
   [1,2,3].forEach(i => document.getElementById(`stab${i}`).classList.remove('active','done'));
   document.getElementById('successScreen').classList.add('active');
@@ -897,7 +979,8 @@ function publishListing() {
 }
 
 function resetForm() {
-  selectedCard=null; selectedCond=null; selectedShipping=null; uploadedPhoto=null;
+  selectedCard=null; selectedCond=null; selectedShipping=null; selectedDisplayType=null; uploadedPhoto=null;
+  document.querySelectorAll('.dtype-opt').forEach(e=>e.classList.remove('selected'));
   document.getElementById('scanResult').classList.remove('active');
   document.getElementById('manualResults').innerHTML='';
   document.getElementById('manualSearch').value='';
