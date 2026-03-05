@@ -957,6 +957,11 @@ async function publishListing() {
     return;
   }
 
+  if (!selectedCard) {
+    alert('No hay ninguna carta seleccionada.');
+    return;
+  }
+
   const btn = document.querySelector('#step3 .btn-next');
   btn.disabled = true;
   btn.textContent = 'Publicando...';
@@ -967,6 +972,7 @@ async function publishListing() {
 
   const { error } = await sb.from('listings').insert({
     seller_id: currentUser.id,
+    card_id: selectedCard.id,
     card_name: selectedCard.name,
     card_set: selectedCard.set?.name || null,
     card_image: imgUrl,
