@@ -970,6 +970,7 @@ async function publishListing() {
   const description = document.getElementById('sellNotes').value.trim();
   const imgUrl = selectedCard._imageUrl || (selectedCard.image ? selectedCard.image + '/low.png' : null);
 
+  console.log('selectedCard:', JSON.stringify(selectedCard));
   const { error } = await sb.from('listings').insert({
     seller_id: currentUser.id,
     card_id: selectedCard.id,
