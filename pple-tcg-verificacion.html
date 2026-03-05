@@ -268,9 +268,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right" id="navRight">
-    <button class="btn-accent" onclick="openOrderModal('ai')">Verificar carta</button>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <!-- HERO -->
@@ -675,16 +673,12 @@ function copyAddress() {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
 <script>
 (async () => {
-  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
-  const { data: { user } } = await sb.auth.getUser();
-  const navRight = document.getElementById('navRight');
+  const user = await initNav();
   if (user) {
-    const initial = (user.email||'U')[0].toUpperCase();
-    navRight.innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div><button class="btn-accent" onclick="openOrderModal('ai')">Verificar carta</button>`;
-  } else {
-    navRight.innerHTML = `<button class="btn-outline" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button><button class="btn-accent" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>`;
+    document.getElementById('navRight').insertAdjacentHTML('beforeend', `<button class="btn-accent" onclick="openOrderModal('ai')">Verificar carta</button>`);
   }
 })();
 </script>

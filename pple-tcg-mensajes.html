@@ -310,7 +310,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 
 <script>
 // ---- DATA ----
-let ME = { name:'Usuario', initial:'U', color:'linear-gradient(135deg,#3d2a6e,#d4f53c)' };
+let ME = { name:'', initial:'U', color:'linear-gradient(135deg,#3d2a6e,#d4f53c)' };
 
 const CONVERSATIONS = [];
 
@@ -355,12 +355,27 @@ function filterTab(tab, btn) {
 }
 
 // ---- OPEN CONVERSATION ----
-function openConv(id) {
+async function openConv(id) {
   const conv = CONVERSATIONS.find(c => c.id === id);
   if (!conv) return;
   conv.unread = false;
   currentConv = conv;
   renderConvList('', convFilter);
+
+  // Load messages from Supabase if not loaded yet
+  if (!conv._loaded) {
+    const { data: msgs } = await sb
+      .from('messages')
+      .select('id, sender_id, text, created_at')
+      .eq('conversation_id', id)
+      .order('created_at', { ascending: true });
+    conv.messages = (msgs || []).map(m => ({
+      from: m.sender_id === ME._userId ? 'me' : m.sender_id,
+      text: m.text,
+      time: new Date(m.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})
+    }));
+    conv._loaded = true;
+  }
 
   // Show chat
   document.getElementById('chatEmpty').style.display = 'none';
@@ -463,7 +478,7 @@ function insertQuickAction(text) {
 }
 
 // ---- SEND MESSAGE ----
-function sendMessage() {
+async function sendMessage() {
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
   if (!text || !currentConv) return;
@@ -476,6 +491,13 @@ function sendMessage() {
   autoResize(input);
   renderMessages(currentConv);
   renderConvList('', convFilter);
+
+  // Persist to Supabase
+  await sb.from('messages').insert({
+    conversation_id: currentConv.id,
+    sender_id: ME._userId,
+    text
+  });
 }
 
 function handleKey(e) {
@@ -540,18 +562,77 @@ function buyNow() {
   renderMessages(currentConv);
 }
 
-// ---- INIT ----
-renderConvList();
+// ---- INIT (real data loaded async below) ----
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
 <script>
 (async () => {
-  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
-  const { data: { user } } = await sb.auth.getUser();
+  const user = await initNav();
   if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
   ME.name = user.email;
-  ME.initial = (user.email||'U')[0].toUpperCase();
-  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${ME.initial}</div>`;
+  ME.initial = (user.email || 'U')[0].toUpperCase();
+  ME._userId = user.id;
+
+  // Load conversations from Supabase
+  // Expected tables: conversations (id, buyer_id, seller_id, listing_id, updated_at)
+  //                  listings (id, card_name, card_set, card_image, condition, price, display_type)
+  const { data: convRows, error } = await sb
+    .from('conversations')
+    .select(`id, buyer_id, seller_id, updated_at,
+             listing:listing_id (card_name, card_set, card_image, condition, price, display_type)`)
+    .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+    .order('updated_at', { ascending: false });
+
+  if (!error && convRows && convRows.length) {
+    // Load last message for each conversation
+    const convIds = convRows.map(c => c.id);
+    const { data: lastMsgs } = await sb
+      .from('messages')
+      .select('conversation_id, text, created_at, sender_id')
+      .in('conversation_id', convIds)
+      .order('created_at', { ascending: false });
+
+    const lastByConv = {};
+    if (lastMsgs) {
+      lastMsgs.forEach(m => {
+        if (!lastByConv[m.conversation_id]) lastByConv[m.conversation_id] = m;
+      });
+    }
+
+    convRows.forEach((row, idx) => {
+      const isBuyer = row.buyer_id === user.id;
+      const otherId = isBuyer ? row.seller_id : row.buyer_id;
+      const listing = row.listing || {};
+      const lastMsg = lastByConv[row.id];
+      const isSlab = listing.display_type === 'slab';
+      const cond = listing.condition || '—';
+      const price = listing.price ? `€${parseFloat(listing.price).toFixed(2)}` : '—';
+
+      CONVERSATIONS.push({
+        id: row.id,
+        user: otherId.slice(0, 8),
+        initial: otherId[0].toUpperCase(),
+        color: `hsl(${(idx * 67) % 360},40%,35%)`,
+        type: isBuyer ? 'compras' : 'ventas',
+        card: {
+          name: listing.card_name || '—',
+          set: listing.card_set || '—',
+          price,
+          img: listing.card_image || null,
+          cond,
+          isSlab
+        },
+        status: 'offline',
+        unread: false,
+        time: lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}) : '',
+        last: lastMsg ? lastMsg.text : 'Sin mensajes',
+        messages: []
+      });
+    });
+  }
+
+  renderConvList();
 })();
 </script>
 </body>

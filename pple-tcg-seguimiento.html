@@ -232,13 +232,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
 <script>
 (async () => {
-  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
-  const initial = (user.email||'U')[0].toUpperCase();
-  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
+  const user = await initNav();
+  if (!user) { window.location.href = 'pple-tcg-auth.html'; }
 })();
 </script>
 </body>

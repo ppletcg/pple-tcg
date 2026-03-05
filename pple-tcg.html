@@ -1073,11 +1073,7 @@ svg.chart { width: 100%; height: 100px; }
     <button class="nav-tab" onclick="window.location.href='pple-tcg-portfolio.html'">Portfolio</button>
     <button class="nav-tab" onclick="window.location.href='pple-tcg-mensajes.html'">Mensajes</button>
   </div>
-  <div class="nav-right">
-    <div class="live-dot">EN VIVO</div>
-    <button class="btn-outline" id="navEntrar" onclick="window.location.href='pple-tcg-auth.html'">Entrar</button>
-    <button class="btn-accent" id="navRegistrar" onclick="window.location.href='pple-tcg-auth.html'">Registrarse</button>
-  </div>
+  <div class="nav-right" id="navRight"></div>
 </nav>
 
 <!-- TICKER -->
@@ -1248,32 +1244,9 @@ svg.chart { width: 100%; height: 100px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
 <script>
-// ---- AUTH CHECK (passive — no redirect for unauthenticated users) ----
-(async () => {
-  const { createClient } = supabase;
-  const sb = createClient(
-    'https://iijreiuecodmqlcvhapp.supabase.co',
-    'sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8'
-  );
-  const { data: { user } } = await sb.auth.getUser();
-  const entrar = document.getElementById('navEntrar');
-  const registrar = document.getElementById('navRegistrar');
-  if (user) {
-    if (entrar) entrar.style.display = 'none';
-    if (registrar) registrar.style.display = 'none';
-    const avatar = document.createElement('div');
-    avatar.className = 'nav-avatar';
-    avatar.title = user.email;
-    avatar.textContent = (user.email || 'U')[0].toUpperCase();
-    avatar.style.cursor = 'pointer';
-    avatar.onclick = () => window.location.href = 'pple-tcg-perfil.html';
-    document.querySelector('.nav-right').appendChild(avatar);
-  } else {
-    if (entrar) entrar.style.display = '';
-    if (registrar) registrar.style.display = '';
-  }
-})();
+initNav('<div class="live-dot">EN VIVO</div>');
 
 const BASE = 'https://api.tcgdex.net/v2/en';
 let cond = 'all', grade = 'all', displayMode = 'raw', allSets = [], curCards = [], curPage = 1;

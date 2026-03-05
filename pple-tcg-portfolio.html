@@ -712,20 +712,48 @@ function addToPortfolio() {
   drawPortfolioChart(currentPeriod,total);
 }
 
-// ---- INIT ----
-const total=computeTotals();
-renderGrids();
-drawPortfolioChart(currentPeriod,total);
+// ---- INIT (data loaded async by Supabase block below) ----
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
 <script>
 (async () => {
-  const sb = supabase.createClient('https://iijreiuecodmqlcvhapp.supabase.co','sb_publishable_XmQgiY0xFENpn4-6YXUoJA_gEovC6U8');
-  const { data: { user } } = await sb.auth.getUser();
+  const user = await initNav();
   if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
-  const initial = (user.email||'U')[0].toUpperCase();
-  document.getElementById('navRight').innerHTML = `<div class="nav-avatar" onclick="window.location.href='pple-tcg-perfil.html'" title="${user.email}" style="cursor:pointer">${initial}</div>`;
   document.getElementById('phUser').textContent = user.email;
+
+  // Load portfolio from Supabase
+  // Expected table: portfolio (id, user_id, card_name, card_set, card_image, display_type, condition, price, paid, for_sale, cert)
+  const { data: rows, error } = await sb
+    .from('portfolio')
+    .select('id, card_name, card_set, card_image, display_type, condition, price, paid, for_sale, cert')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (!error && rows && rows.length) {
+    rows.forEach(r => {
+      const entry = {
+        id: r.id,
+        name: r.card_name || '—',
+        set: r.card_set || '—',
+        img: r.card_image || '',
+        price: parseFloat(r.price) || 0,
+        paid: parseFloat(r.paid) || 0,
+        forSale: !!r.for_sale
+      };
+      if (r.display_type === 'raw') {
+        portfolio.raw.push({ ...entry, cond: r.condition || 'NM' });
+      } else if (r.display_type === 'slab') {
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—' });
+      } else if (r.display_type === 'sealed') {
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: entry.price, qty: 1, paid: entry.paid, trend: '0%' });
+      }
+    });
+  }
+
+  const total = computeTotals();
+  renderGrids();
+  drawPortfolioChart(currentPeriod, total);
 })();
 </script>
 </body>
