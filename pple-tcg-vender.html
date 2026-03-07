@@ -724,7 +724,7 @@ async function fetchCardFromTCGdex(identified) {
       const card = await detailRes.json();
       const price = card.pricing?.cardmarket?.trend || card.pricing?.cardmarket?.avg || null;
 
-      selectedCard = { ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
+      selectedCard = { id: card.id || match.id, ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
 
       document.getElementById('srStatus').className = 'sr-status sr-found';
       document.getElementById('srStatus').innerHTML = '✓ Carta identificada correctamente';
@@ -816,7 +816,7 @@ async function selectManualCard(id) {
   try {
     const res = await fetch(`${BASE}/cards/${id}`);
     const card = await res.json();
-    selectedCard = { ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
+    selectedCard = { id: card.id || id, ...card, _imageUrl: card.image ? card.image+'/high.png' : null };
     document.getElementById('manualSearch').value = card.name;
     document.getElementById('manualResults').innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);border-radius:8px;">
@@ -970,11 +970,19 @@ async function publishListing() {
   const description = document.getElementById('sellNotes').value.trim();
   const imgUrl = selectedCard._imageUrl || (selectedCard.image ? selectedCard.image + '/low.png' : null);
 
-  console.log('selectedCard:', JSON.stringify(selectedCard));
+  const card_id = (selectedCard.id || '').toString().trim();
+  const card_name = (selectedCard.name || '').trim();
+  console.log('[publishListing] seller_id:', currentUser.id, '| card_id:', card_id, '| card_name:', card_name, '| price:', price);
+  if (!card_id) {
+    btn.disabled = false;
+    btn.textContent = 'Publicar anuncio ✓';
+    alert('Error: no se pudo determinar el ID de la carta. Vuelve a seleccionarla.');
+    return;
+  }
   const { error } = await sb.from('listings').insert({
     seller_id: currentUser.id,
-    card_id: selectedCard.id,
-    card_name: selectedCard.name,
+    card_id: card_id,
+    card_name: card_name,
     card_set: selectedCard.set?.name || null,
     card_image: imgUrl,
     display_type: selectedDisplayType,
