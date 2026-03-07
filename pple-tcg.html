@@ -1059,6 +1059,243 @@ svg.chart { width: 100%; height: 100px; }
   .modal { grid-template-columns: 1fr; }
   .modal-left { border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+/* ===== BUY BUTTON on seller row ===== */
+.buy-now-btn {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 5px;
+  background: var(--accent);
+  color: #08080d;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.buy-now-btn:hover { box-shadow: 0 0 16px var(--accent-glow); transform: translateY(-1px); }
+
+/* ===== BUYERS SECTION in modal ===== */
+.buyers-hd {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.buyer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: var(--surface2);
+}
+.buyer-price { font-family: var(--font-display); font-size: 1rem; color: var(--nm); }
+.buyer-cond { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); margin-top: 2px; }
+.accept-offer-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--nm);
+  border-radius: 4px;
+  background: rgba(46,213,115,0.08);
+  color: var(--nm);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.accept-offer-btn:hover { background: rgba(46,213,115,0.18); }
+
+/* ===== BUY NOW CHECKOUT MODAL ===== */
+.buy-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 440px;
+  animation: mIn 0.2s ease;
+  overflow: hidden;
+}
+.bm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.bm-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+}
+.bm-body { padding: 20px 24px; }
+.bm-card-summary {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background: var(--bg2);
+}
+.bm-card-thumb {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, #13132a, #1a1a35);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.bm-card-thumb img { width:100%; height:100%; object-fit:contain; }
+.bm-card-info { flex: 1; min-width: 0; }
+.bm-card-name { font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bm-card-sub { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); margin-top: 2px; }
+.bm-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.bm-verify-opts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.bm-opt {
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  background: var(--bg2);
+}
+.bm-opt:hover { border-color: var(--border2); }
+.bm-opt.selected { border-color: var(--accent); background: var(--accent-dim); }
+.bmo-icon { font-size: 1.1rem; margin-bottom: 6px; }
+.bmo-name { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; color: var(--text); margin-bottom: 3px; }
+.bmo-desc { font-family: var(--font-mono); font-size: 0.55rem; color: var(--text3); margin-bottom: 6px; line-height: 1.4; }
+.bmo-cost { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; color: var(--accent); }
+.bm-opt.selected .bmo-name { color: var(--accent); }
+.bm-breakdown {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.bbd-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.bbd-row:last-child { border-bottom: none; }
+.bbd-total {
+  background: var(--bg2);
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.bbd-total span:last-child { color: var(--accent); }
+.bm-confirm-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #08080d;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bm-confirm-btn:hover { box-shadow: 0 0 24px var(--accent-glow); transform: translateY(-1px); }
+.bm-verify-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+.tag-ai { background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; }
+.tag-human { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3); color: #a78bfa; }
+
+/* ===== MAKE OFFER MODAL ===== */
+.offer-modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 380px;
+  animation: mIn 0.2s ease;
+}
+.offer-modal-body { padding: 20px 24px 24px; }
+.offer-field { margin-bottom: 16px; }
+.offer-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.offer-field input, .offer-field select {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.offer-field input:focus, .offer-field select:focus { border-color: var(--accent); }
+.offer-field select option { background: var(--surface2); }
+.offer-submit-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #08080d;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.offer-submit-btn:hover { box-shadow: 0 0 20px var(--accent-glow); }
 </style>
 </head>
 <body>
@@ -1232,13 +1469,85 @@ svg.chart { width: 100%; height: 100px; }
       <div id="noPriceNotice" class="no-price-notice" style="display:none">
         ⚠ Esta carta no tiene datos de precio en Cardmarket aún.
       </div>
-      <div class="sellers-hd">Vendedores</div>
+      <div class="sellers-hd">VENDEDORES <span id="sellersCount" style="color:var(--text3);font-weight:400;letter-spacing:0"></span></div>
       <div id="sellersList"></div>
-      <div class="offer-bar">
-        <div class="offer-label">OFERTA MÁX.</div>
-        <input class="offer-input" type="text" placeholder="€0.00" id="offerInput">
-        <button class="btn-accent" onclick="submitOffer()">Ofertar</button>
+      <div class="buyers-hd" style="margin-top:18px">OFERTAS DE COMPRA <span id="buyersCount" style="color:var(--text3);font-weight:400;letter-spacing:0"></span></div>
+      <div id="buyersList"></div>
+      <div class="offer-bar" style="padding-top:14px">
+        <button class="btn-accent" style="width:100%;padding:11px 0;font-size:0.73rem;letter-spacing:1px" onclick="openMakeOffer()">+ HACER OFERTA</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUY NOW CHECKOUT MODAL -->
+<div class="modal-overlay" id="buyOverlay" onclick="buyOverlayClick(event)" style="display:none;z-index:200">
+  <div class="buy-modal">
+    <div class="bm-header">
+      <div class="bm-title">COMPRA DIRECTA</div>
+      <button class="m-close" onclick="closeBuyModal()">✕</button>
+    </div>
+    <div class="bm-body">
+      <div class="bm-card-summary">
+        <div class="bm-card-thumb" id="bmThumb">🎴</div>
+        <div class="bm-card-info">
+          <div class="bm-card-name" id="bmCardName">—</div>
+          <div class="bm-card-sub" id="bmCardSub">—</div>
+        </div>
+      </div>
+      <div class="bm-section-title">VERIFICACIÓN</div>
+      <div class="bm-verify-opts">
+        <div class="bm-opt selected" id="voptNone" onclick="selectVerification('none')">
+          <div class="bmo-icon">—</div>
+          <div class="bmo-name">Sin verif.</div>
+          <div class="bmo-desc">Compra directa sin revisión</div>
+          <div class="bmo-cost">Gratis</div>
+        </div>
+        <div class="bm-opt" id="voptAI" onclick="selectVerification('ai')">
+          <div class="bmo-icon">🤖</div>
+          <div class="bmo-name">IA</div>
+          <div class="bmo-desc">Análisis automático instantáneo</div>
+          <div class="bmo-cost">+2%</div>
+        </div>
+        <div class="bm-opt" id="voptHuman" onclick="selectVerification('human')">
+          <div class="bmo-icon">👤</div>
+          <div class="bmo-name">Manual</div>
+          <div class="bmo-desc">Revisión por experto humano</div>
+          <div class="bmo-cost">+5%</div>
+        </div>
+      </div>
+      <div class="bm-breakdown">
+        <div class="bbd-row"><span>Precio carta</span><span id="bmBasePrice">—</span></div>
+        <div class="bbd-row"><span>Verificación</span><span id="bmVerifyCost">€0.00</span></div>
+        <div class="bbd-row bbd-total"><span>TOTAL</span><span id="bmTotal">—</span></div>
+      </div>
+      <button class="bm-confirm-btn" onclick="confirmBuy()">CONFIRMAR COMPRA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAKE OFFER MODAL -->
+<div class="modal-overlay" id="offerOverlay" onclick="offerOverlayClick(event)" style="display:none;z-index:200">
+  <div class="offer-modal">
+    <div class="bm-header">
+      <div class="bm-title">HACER OFERTA</div>
+      <button class="m-close" onclick="closeOfferModal()">✕</button>
+    </div>
+    <div class="offer-modal-body">
+      <div class="offer-field">
+        <label>Tu precio (€)</label>
+        <input type="number" id="offerPrice" placeholder="0.00" min="0.01" step="0.01">
+      </div>
+      <div class="offer-field">
+        <label>Condición</label>
+        <select id="offerCondition">
+          <option value="NM">Near Mint (NM)</option>
+          <option value="LP">Lightly Played (LP)</option>
+          <option value="MP">Mod. Played (MP)</option>
+        </select>
+      </div>
+      <div id="offerMsg" style="font-family:var(--font-mono);font-size:0.72rem;margin-bottom:12px;display:none"></div>
+      <button class="offer-submit-btn" onclick="submitMakeOffer()">PUBLICAR OFERTA</button>
     </div>
   </div>
 </div>
@@ -1558,6 +1867,9 @@ async function openCard(id, name) {
   document.getElementById('mPrice').className='m-price';
   document.getElementById('mChg').textContent='—';
   document.getElementById('sellersList').innerHTML='';
+  document.getElementById('buyersList').innerHTML='';
+  document.getElementById('sellersCount').textContent='';
+  document.getElementById('buyersCount').textContent='';
   document.getElementById('noPriceNotice').style.display='none';
   ['pdTrend','pdLow','pdAvg1','pdAvg7','pdAvg30'].forEach(id=>document.getElementById(id).textContent='—');
   document.getElementById('chartDatapoints').innerHTML='';
@@ -1595,9 +1907,12 @@ async function openCard(id, name) {
       setAvgEl('pdAvg7',a7,a30);
       document.getElementById('pdAvg30').textContent=fmtPrice(a30)||'—';
     }
+    curModalCardName = card.name;
+    curModalCardImg = card.image ? card.image + '/high.png' : null;
     drawChart(cm,'7d');
     updateChartDatapoints(cm,'7d');
-    renderSellers(id,price,cm);
+    renderSellers(id,price);
+    renderBuyOffers(id);
   } catch(e) { document.getElementById('mSet').textContent='Error al cargar'; }
 }
 
@@ -1672,8 +1987,17 @@ function switchChart(period,btn){
   updateChartDatapoints(curPricing,period);
 }
 
-async function renderSellers(cardId, basePrice, cm) {
+// ---- STATE ----
+let curModalCardId = null;
+let curModalCardName = null;
+let curModalCardImg = null;
+let curBuyListing = null;
+let curVerif = 'none';
+
+async function renderSellers(cardId, basePrice) {
+  curModalCardId = cardId;
   const sl = document.getElementById('sellersList');
+  const sc = document.getElementById('sellersCount');
   sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">Buscando vendedores...</div>';
 
   const { data: listings } = await sb
@@ -1685,33 +2009,219 @@ async function renderSellers(cardId, basePrice, cm) {
 
   if (!listings || !listings.length) {
     sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay vendedores para esta carta.</div>';
+    sc.textContent = '';
     return;
   }
 
+  sc.textContent = `(${listings.length})`;
   const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
-  sl.innerHTML = listings.map(l => {
-    const below = basePrice && parseFloat(l.price) <= basePrice;
+  const cheapest = parseFloat(listings[0].price);
+
+  sl.innerHTML = listings.map((l, i) => {
+    const price = parseFloat(l.price);
+    const below = basePrice && price <= basePrice;
+    const isBest = i === 0;
     const cmpHtml = basePrice
-      ? `<div style="font-size:0.62rem;color:${below?'var(--nm)':'var(--mp)'};font-family:var(--font-mono);">${below?'▼ bajo mercado':'▲ sobre mercado'}</div>`
+      ? `<div style="font-size:0.6rem;color:${below?'var(--nm)':'var(--mp)'};font-family:var(--font-mono);margin-top:2px">${below?'▼ bajo mercado':'▲ sobre mercado'}</div>`
       : '';
+    const bestBadge = isBest ? `<span style="font-family:var(--font-mono);font-size:0.55rem;background:rgba(212,245,60,0.12);border:1px solid rgba(212,245,60,0.3);color:var(--accent);padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:0.5px">MEJOR</span>` : '';
+    const listingData = encodeURIComponent(JSON.stringify({id:l.id,price:l.price,condition:l.condition,display_type:l.display_type,seller_id:l.seller_id}));
     return `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;background:var(--surface2);cursor:pointer;"
-         onclick="window.location.href='pple-tcg-perfil.html?uid=${l.seller_id}'">
-      <div>
-        <div style="font-size:0.72rem;font-weight:600;font-family:var(--font-mono);">${condLabel[l.condition] || l.condition || '—'}</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid ${isBest?'rgba(212,245,60,0.2)':'var(--border)'};border-radius:6px;margin-bottom:6px;background:${isBest?'rgba(212,245,60,0.04)':'var(--surface2)'};">
+      <div style="flex:1;cursor:pointer" onclick="window.location.href='pple-tcg-perfil.html?uid=${l.seller_id}'">
+        <div style="font-size:0.72rem;font-weight:600;font-family:var(--font-mono);">${condLabel[l.condition] || l.condition || '—'}${bestBadge}</div>
         <div style="font-size:0.62rem;color:var(--text3);font-family:var(--font-mono);">${l.display_type==='slab'?'Slab':'Raw'} · Ver perfil →</div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${parseFloat(l.price).toFixed(2)}</div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${price.toFixed(2)}</div>
         ${cmpHtml}
       </div>
+      <button class="buy-now-btn" onclick="openBuyModal(${JSON.stringify(l)})">Comprar</button>
     </div>`;
   }).join('');
 }
 
-function closeModal(){document.getElementById('overlay').classList.remove('open');}
-function overlayClick(e){if(e.target===document.getElementById('overlay'))closeModal();}
-function submitOffer(){const v=document.getElementById('offerInput').value;if(v){alert(`✅ Oferta de ${v} registrada.`);document.getElementById('offerInput').value='';}}
+async function renderBuyOffers(cardId) {
+  const bl = document.getElementById('buyersList');
+  const bc = document.getElementById('buyersCount');
+  bl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:8px;font-family:var(--font-mono)">Cargando ofertas...</div>';
+
+  const { data: offers } = await sb
+    .from('buy_offers')
+    .select('id, price, condition, user_id, created_at')
+    .eq('card_id', cardId)
+    .eq('status', 'open')
+    .order('price', { ascending: false })
+    .limit(6);
+
+  if (!offers || !offers.length) {
+    bl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:8px;font-family:var(--font-mono)">Sin ofertas de compra activas.</div>';
+    bc.textContent = '';
+    return;
+  }
+
+  bc.textContent = `(${offers.length})`;
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played' };
+  bl.innerHTML = offers.map((o, i) => {
+    const isBest = i === 0;
+    return `
+    <div class="buyer-row" style="${isBest?'border-color:rgba(46,213,115,0.25);background:rgba(46,213,115,0.03)':''}">
+      <div>
+        <div class="buyer-price">€${parseFloat(o.price).toFixed(2)}${isBest?` <span style="font-family:var(--font-mono);font-size:0.55rem;background:rgba(46,213,115,0.12);border:1px solid rgba(46,213,115,0.3);color:var(--nm);padding:1px 5px;border-radius:3px">MEJOR</span>`:''}</div>
+        <div class="buyer-cond">${condLabel[o.condition] || o.condition}</div>
+      </div>
+      <button class="accept-offer-btn" onclick="acceptOffer('${o.id}', '${o.user_id}', ${o.price})">Aceptar</button>
+    </div>`;
+  }).join('');
+}
+
+// ---- BUY NOW ----
+function openBuyModal(listing) {
+  curBuyListing = listing;
+  curVerif = 'none';
+  document.getElementById('bmCardName').textContent = curModalCardName || '—';
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
+  document.getElementById('bmCardSub').textContent = `${condLabel[listing.condition] || listing.condition} · ${listing.display_type === 'slab' ? 'Slab' : 'Raw'}`;
+  const thumb = document.getElementById('bmThumb');
+  const imgEl = document.getElementById('mImg').querySelector('img');
+  thumb.innerHTML = imgEl ? `<img src="${imgEl.src}" alt="">` : '🎴';
+  ['voptNone','voptAI','voptHuman'].forEach(id => document.getElementById(id).classList.remove('selected'));
+  document.getElementById('voptNone').classList.add('selected');
+  updateBuyBreakdown();
+  document.getElementById('buyOverlay').style.display = 'flex';
+}
+
+function closeBuyModal() {
+  document.getElementById('buyOverlay').style.display = 'none';
+}
+
+function buyOverlayClick(e) {
+  if (e.target === document.getElementById('buyOverlay')) closeBuyModal();
+}
+
+function selectVerification(type) {
+  curVerif = type;
+  ['voptNone','voptAI','voptHuman'].forEach(id => document.getElementById(id).classList.remove('selected'));
+  const map = { none:'voptNone', ai:'voptAI', human:'voptHuman' };
+  document.getElementById(map[type]).classList.add('selected');
+  updateBuyBreakdown();
+}
+
+function updateBuyBreakdown() {
+  if (!curBuyListing) return;
+  const base = parseFloat(curBuyListing.price);
+  const verifRate = curVerif === 'ai' ? 0.02 : curVerif === 'human' ? 0.05 : 0;
+  const verifCost = base * verifRate;
+  const total = base + verifCost;
+  document.getElementById('bmBasePrice').textContent = `€${base.toFixed(2)}`;
+  document.getElementById('bmVerifyCost').textContent = verifRate > 0 ? `€${verifCost.toFixed(2)} (+${verifRate*100}%)` : '€0.00';
+  document.getElementById('bmTotal').textContent = `€${total.toFixed(2)}`;
+}
+
+async function confirmBuy() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { alert('Debes iniciar sesión para comprar.'); return; }
+  if (!curBuyListing) return;
+  const base = parseFloat(curBuyListing.price);
+  const verifRate = curVerif === 'ai' ? 0.02 : curVerif === 'human' ? 0.05 : 0;
+  const total = base + base * verifRate;
+  const btn = document.querySelector('.bm-confirm-btn');
+  btn.textContent = 'Procesando...';
+  btn.disabled = true;
+  const { error } = await sb.from('orders').insert({
+    listing_id: curBuyListing.id,
+    buyer_id: user.id,
+    seller_id: curBuyListing.seller_id,
+    card_id: curModalCardId,
+    price: total,
+    verification: curVerif,
+    status: 'pending'
+  });
+  btn.textContent = 'CONFIRMAR COMPRA';
+  btn.disabled = false;
+  if (error) { alert('Error al procesar la compra: ' + error.message); return; }
+  closeBuyModal();
+  alert(`Compra registrada por €${total.toFixed(2)}. El vendedor recibirá una notificación.`);
+}
+
+// ---- MAKE OFFER ----
+function openMakeOffer() {
+  if (!curModalCardId) return;
+  document.getElementById('offerPrice').value = '';
+  document.getElementById('offerCondition').value = 'NM';
+  document.getElementById('offerMsg').style.display = 'none';
+  document.getElementById('offerOverlay').style.display = 'flex';
+}
+
+function closeOfferModal() {
+  document.getElementById('offerOverlay').style.display = 'none';
+}
+
+function offerOverlayClick(e) {
+  if (e.target === document.getElementById('offerOverlay')) closeOfferModal();
+}
+
+async function submitMakeOffer() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { alert('Debes iniciar sesión para hacer una oferta.'); return; }
+  const price = parseFloat(document.getElementById('offerPrice').value);
+  const condition = document.getElementById('offerCondition').value;
+  const msg = document.getElementById('offerMsg');
+  if (!price || price <= 0) {
+    msg.style.display = 'block';
+    msg.style.color = 'var(--mp)';
+    msg.textContent = 'Introduce un precio válido.';
+    return;
+  }
+  const btn = document.querySelector('.offer-submit-btn');
+  btn.textContent = 'Publicando...';
+  btn.disabled = true;
+  const { error } = await sb.from('buy_offers').insert({
+    card_id: curModalCardId,
+    user_id: user.id,
+    price,
+    condition,
+    status: 'open'
+  });
+  btn.textContent = 'PUBLICAR OFERTA';
+  btn.disabled = false;
+  if (error) {
+    msg.style.display = 'block';
+    msg.style.color = 'var(--mp)';
+    msg.textContent = 'Error: ' + error.message;
+    return;
+  }
+  closeOfferModal();
+  renderBuyOffers(curModalCardId);
+}
+
+async function acceptOffer(offerId, buyerUserId, offerPrice) {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { alert('Debes iniciar sesión.'); return; }
+  if (!confirm(`¿Aceptar oferta de €${parseFloat(offerPrice).toFixed(2)}?`)) return;
+  const { error: e1 } = await sb.from('buy_offers').update({ status: 'accepted' }).eq('id', offerId);
+  if (e1) { alert('Error: ' + e1.message); return; }
+  const { error: e2 } = await sb.from('orders').insert({
+    buyer_id: buyerUserId,
+    seller_id: user.id,
+    card_id: curModalCardId,
+    price: offerPrice,
+    verification: 'none',
+    status: 'pending',
+    source: 'buy_offer',
+    offer_id: offerId
+  });
+  if (e2) { alert('Error al crear orden: ' + e2.message); return; }
+  alert('Oferta aceptada. Orden creada.');
+  renderBuyOffers(curModalCardId);
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+function overlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
 
 init();
 </script>
