@@ -603,6 +603,7 @@ function renderGrids() {
       <div class="pcard ${c.forSale?'for-sale':''}">
         <div class="pcard-img">
           <img src="${c.img}" alt="${c.name}" onerror="this.parentNode.innerHTML='🎴'">
+          ${c.qty > 1 ? `<div class="qty-badge">x${c.qty}</div>` : ''}
           <div class="cond-raw raw-${c.cond.toLowerCase()}">${c.cond}</div>
         </div>
         <div class="pcard-body">
@@ -625,6 +626,7 @@ function renderGrids() {
       <div class="pcard is-slab ${c.forSale?'for-sale':''}">
         <div class="pcard-img">
           <img src="${c.img}" alt="${c.name}" onerror="this.parentNode.innerHTML='🏆'">
+          ${c.qty > 1 ? `<div class="qty-badge">x${c.qty}</div>` : ''}
           <div class="pc-grade ${gc}">${c.grade.replace('PSA','PSA ')}</div>
         </div>
         <div class="pcard-body">
@@ -1006,9 +1008,9 @@ async function confirmClassification() {
         forSale: r.status === 'for_sale'
       };
       if (r.display_type === 'raw') {
-        portfolio.raw.push({ ...entry, cond: r.condition || 'NM' });
+        portfolio.raw.push({ ...entry, cond: r.condition || 'NM', qty: r.quantity || 1 });
       } else if (r.display_type === 'slab') {
-        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—' });
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—', qty: r.quantity || 1 });
       } else if (r.display_type === 'sealed') {
         portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: entry.price, qty: r.quantity || 1, paid: 0, trend: '0%' });
       }
@@ -1029,10 +1031,10 @@ async function loadListingsSection(userId) {
   const valEl = document.getElementById('listingsSectionVal');
 
   const { data: rows, error } = await sb
-    .from('portfolio')
-    .select('id, card_id, card_name, card_set, card_image, condition, quantity, status')
-    .eq('user_id', userId)
-    .eq('status', 'for_sale')
+    .from('listings')
+    .select('id, card_name, card_set, card_image, condition, price, display_type')
+    .eq('seller_id', userId)
+    .eq('sold', false)
     .order('id', { ascending: false });
 
   if (error || !rows || rows.length === 0) {
@@ -1046,16 +1048,15 @@ async function loadListingsSection(userId) {
     return;
   }
 
-  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
   const condClass = { NM:'raw-nm', LP:'raw-lp', MP:'raw-lp', PSA10:'grade-10', PSA9:'grade-9', PSA8:'grade-8' };
 
+  const totalVal = rows.reduce((s, r) => s + (parseFloat(r.price) || 0), 0);
   countEl.textContent = `${rows.length} anuncios`;
-  valEl.textContent = '—';
+  valEl.textContent = `€${totalVal.toFixed(2)}`;
 
   grid.innerHTML = rows.map(r => {
-    const qty = r.quantity || 1;
     const cond = r.condition || 'NM';
-    const qtyBadge = qty > 1 ? `<div class="qty-badge">x${qty}</div>` : '';
+    const price = parseFloat(r.price) || 0;
     const imgHtml = r.card_image
       ? `<img src="${r.card_image}" alt="${r.card_name || ''}" onerror="this.parentNode.innerHTML='&#127924;'">`
       : '&#127924;';
@@ -1063,14 +1064,13 @@ async function loadListingsSection(userId) {
     return `<div class="pcard for-sale">
       <div class="pcard-img">
         ${imgHtml}
-        ${qtyBadge}
         <div class="cond-raw ${condClass[cond] || 'raw-nm'}">${cond}</div>
       </div>
       <div class="pcard-body">
         <div class="pc-name">${r.card_name || '—'}</div>
         <div class="pc-set">${r.card_set || '—'}</div>
         <div class="pc-footer">
-          <div class="pc-price" style="font-size:0.78rem;color:var(--text2)">${condLabel[cond] || cond}</div>
+          <div class="pc-price">€${price.toFixed(2)}</div>
         </div>
       </div>
     </div>`;

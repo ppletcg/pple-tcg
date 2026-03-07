@@ -238,7 +238,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
       <div class="si-label">Valoración positiva</div>
     </div>
     <div class="stat-item">
-      <div class="si-val">0</div>
+      <div class="si-val" id="statForSale">0</div>
       <div class="si-label">Cartas en venta</div>
     </div>
     <div class="stat-item">
@@ -445,11 +445,20 @@ async function doLogout() {
     document.getElementById('phDesc').style.color = '';
   }
 
+  // Count active listings for stats bar
+  const { count: forSaleCount } = await sb
+    .from('listings')
+    .select('id', { count: 'exact', head: true })
+    .eq('seller_id', profileId)
+    .eq('sold', false);
+  document.getElementById('statForSale').textContent = forSaleCount || 0;
+
   // Load listings for this profile
   const { data: listings } = await sb
     .from('listings')
     .select('id, card_name, card_set, card_image, condition, price, display_type')
     .eq('seller_id', profileId)
+    .eq('sold', false)
     .order('created_at', { ascending: false })
     .limit(12);
 
