@@ -224,6 +224,10 @@ svg.portfolio-chart{width:100%;height:180px;}
 .cm-preview-name{font-size:0.88rem;font-weight:600;margin-bottom:3px;}
 .cm-preview-set{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);}
 .cm-section-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:block;}
+.cm-type-tabs{display:flex;gap:6px;margin-bottom:18px;}
+.cm-type-btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text3);font-family:var(--font-mono);font-size:0.72rem;font-weight:600;cursor:pointer;transition:all 0.15s;letter-spacing:1px;text-transform:uppercase;}
+.cm-type-btn:hover{border-color:var(--border2);color:var(--text2);}
+.cm-type-btn.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -360,7 +364,7 @@ svg.portfolio-chart{width:100%;height:180px;}
       </div>
       <div class="sh-right">
         <div class="sh-value" id="psaSectionVal">€0</div>
-        <button class="add-btn" onclick="openModal('psa')">+ Añadir</button>
+        <button class="add-btn" onclick="openModal('slab')">+ Añadir</button>
       </div>
     </div>
     <div class="cards-grid" id="psaGrid"></div>
@@ -449,6 +453,12 @@ svg.portfolio-chart{width:100%;height:180px;}
     <div class="modal-title" id="cmTitle">CLASIFICAR CARTA</div>
     <div class="modal-sub" id="cmSub">Selecciona el estado de la carta</div>
 
+    <!-- Type selector (RAW / SLAB) -->
+    <div class="cm-type-tabs" id="cmTypeTabs" style="display:none">
+      <button class="cm-type-btn" id="cmBtnRaw" onclick="selectClassifyType('raw')">RAW</button>
+      <button class="cm-type-btn" id="cmBtnSlab" onclick="selectClassifyType('slab')">SLAB</button>
+    </div>
+
     <!-- Card preview -->
     <div class="cm-card-preview">
       <img id="cmCardImg" class="cm-preview-img" src="" alt="" onerror="this.style.visibility='hidden'">
@@ -534,7 +544,12 @@ svg.portfolio-chart{width:100%;height:180px;}
       </div>
     </div>
 
-    <div class="modal-btns" style="margin-top:20px">
+    <div class="form-group" style="margin-top:16px">
+      <label class="fg-label">Coste de compra (€)</label>
+      <input class="fg-input" type="number" id="cmPrice" placeholder="0.00" step="0.01" min="0">
+    </div>
+
+    <div class="modal-btns" style="margin-top:16px">
       <button class="btn-cancel" onclick="closeClassifyModal()">Cancelar</button>
       <button class="btn-add" id="btnConfirmClassify" onclick="confirmClassification()">Confirmar</button>
     </div>
@@ -764,13 +779,13 @@ function openModal(mode) {
   document.getElementById('modalExtraFields').style.display='none';
   document.getElementById('btnModalAdd').disabled=true;
 
-  const titles={raw:'AÑADIR CARTA RAW',psa:'AÑADIR SLAB PSA',sealed:'AÑADIR PRODUCTO SELLADO',wish:'AÑADIR A WISHLIST'};
-  const subs={raw:'Busca en el catálogo y declara el estado',psa:'Busca la carta y añade el grado PSA',sealed:'Añade un producto sellado a tu colección',wish:'Cartas que quieres comprar a un precio objetivo'};
+  const titles={raw:'AÑADIR CARTA RAW',slab:'AÑADIR SLAB PSA',sealed:'AÑADIR PRODUCTO SELLADO',wish:'AÑADIR A WISHLIST'};
+  const subs={raw:'Busca en el catálogo y declara el estado',slab:'Busca la carta y añade el grado PSA',sealed:'Añade un producto sellado a tu colección',wish:'Cartas que quieres comprar a un precio objetivo'};
   document.getElementById('modalTitle').textContent=titles[mode]||'AÑADIR';
   document.getElementById('modalSub').textContent=subs[mode]||'';
 
-  // Adapt fields for PSA
-  if(mode==='psa') {
+  // Adapt fields for SLAB
+  if(mode==='slab') {
     document.getElementById('modalCondLabel').textContent='Grado PSA';
     document.getElementById('modalCond').innerHTML=`<option value="PSA10">PSA 10</option><option value="PSA9">PSA 9</option><option value="PSA8">PSA 8</option>`;
   } else {
@@ -855,21 +870,30 @@ function openClassifyModal() {
 
   // Reset inputs
   document.getElementById('cmCert').value = '';
+  document.getElementById('cmPrice').value = '';
+
+  // Show/hide type tabs (only for raw/slab)
+  const showTabs = modalMode === 'raw' || modalMode === 'slab';
+  document.getElementById('cmTypeTabs').style.display = showTabs ? 'flex' : 'none';
+  if (showTabs) {
+    document.getElementById('cmBtnRaw').classList.toggle('active', modalMode === 'raw');
+    document.getElementById('cmBtnSlab').classList.toggle('active', modalMode === 'slab');
+  }
 
   // Show/hide fields by mode
-  document.getElementById('cmRawFields').style.display   = modalMode === 'raw'    ? 'block' : 'none';
-  document.getElementById('cmSlabFields').style.display  = modalMode === 'psa'    ? 'block' : 'none';
+  document.getElementById('cmRawFields').style.display    = modalMode === 'raw'    ? 'block' : 'none';
+  document.getElementById('cmSlabFields').style.display   = modalMode === 'slab'   ? 'block' : 'none';
   document.getElementById('cmSealedFields').style.display = modalMode === 'sealed' ? 'block' : 'none';
 
   // Set title/sub
   const titles = {
     raw:    'CLASIFICAR CARTA RAW',
-    psa:    'CLASIFICAR CARTA GRADED',
+    slab:   'CLASIFICAR CARTA GRADED',
     sealed: 'CLASIFICAR PRODUCTO SELLADO'
   };
   const subs = {
     raw:    'Selecciona el estado de conservación',
-    psa:    'Indica empresa, grado y certificado',
+    slab:   'Indica empresa, grado y certificado',
     sealed: 'Especifica el tipo y estado del producto'
   };
   document.getElementById('cmTitle').textContent = titles[modalMode] || 'CLASIFICAR';
@@ -889,6 +913,16 @@ function closeClassifyModal() {
 function closeClassifyOverlay(e) {
   if (e.target === document.getElementById('classifyModal'))
     document.getElementById('classifyModal').classList.remove('open');
+}
+
+function selectClassifyType(type) {
+  modalMode = type;
+  document.getElementById('cmBtnRaw').classList.toggle('active', type === 'raw');
+  document.getElementById('cmBtnSlab').classList.toggle('active', type === 'slab');
+  document.getElementById('cmRawFields').style.display  = type === 'raw'  ? 'block' : 'none';
+  document.getElementById('cmSlabFields').style.display = type === 'slab' ? 'block' : 'none';
+  // Reset condition selection when switching
+  document.querySelectorAll('.cm-cond-opt').forEach(o => o.classList.remove('selected'));
 }
 
 function selectCondOpt(el) {
@@ -911,6 +945,7 @@ async function confirmClassification() {
     const card_set   = card.set?.name || '—';
     const card_image = card.image ? card.image + '/high.png' : null;
 
+    const price = parseFloat(document.getElementById('cmPrice').value) || 0;
     let display_type, condition, cert = null, sealed_status = null;
 
     if (modalMode === 'raw') {
@@ -922,7 +957,7 @@ async function confirmClassification() {
       display_type = 'raw';
       condition    = sel.dataset.val; // NM | LP | MP
 
-    } else if (modalMode === 'psa') {
+    } else if (modalMode === 'slab') {
       const company = document.getElementById('cmCompany').value;
       const grade   = document.getElementById('cmGrade').value;
       display_type  = 'slab';
@@ -960,7 +995,8 @@ async function confirmClassification() {
         display_type,
         condition,
         quantity: 1,
-        status: 'owned'
+        status: 'owned',
+        price
       };
       if (cert !== null) row.cert = cert;
       if (sealed_status !== null) row.sealed_status = sealed_status;
@@ -970,7 +1006,7 @@ async function confirmClassification() {
     }
 
     document.getElementById('classifyModal').classList.remove('open');
-    window.location.reload();
+    await reloadPortfolioSections();
 
   } catch (err) {
     console.error('Error guardando en portfolio:', err);
@@ -980,6 +1016,46 @@ async function confirmClassification() {
 }
 
 // ---- INIT (data loaded async by Supabase block below) ----
+let currentUserId = null;
+
+async function reloadPortfolioSections() {
+  if (!currentUserId) return;
+  portfolio.raw = [];
+  portfolio.psa = [];
+  portfolio.sealed = [];
+
+  const { data: rows, error } = await sb
+    .from('portfolio')
+    .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
+    .eq('user_id', currentUserId)
+    .order('card_name', { ascending: true });
+
+  if (!error && rows && rows.length) {
+    rows.forEach(r => {
+      const entry = {
+        id: r.id,
+        name: r.card_name || '—',
+        set: r.card_set || '—',
+        img: r.card_image || '',
+        price: 0,
+        paid: parseFloat(r.price) || 0,
+        forSale: r.status === 'for_sale'
+      };
+      if (r.display_type === 'raw') {
+        portfolio.raw.push({ ...entry, cond: r.condition || 'NM', qty: r.quantity || 1 });
+      } else if (r.display_type === 'slab') {
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—', qty: r.quantity || 1 });
+      } else if (r.display_type === 'sealed') {
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: 0, qty: r.quantity || 1, paid: entry.paid, trend: '0%' });
+      }
+    });
+  }
+
+  const total = computeTotals();
+  renderGrids();
+  drawPortfolioChart(currentPeriod, total);
+  await loadListingsSection(currentUserId);
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="sb.js"></script>
@@ -988,6 +1064,7 @@ async function confirmClassification() {
   const user = await initNav();
   console.log('USER ID:', user?.id);
   if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
+  currentUserId = user.id;
   document.getElementById('phUser').textContent = user.email;
 
   // Load portfolio from Supabase
@@ -1004,8 +1081,8 @@ async function confirmClassification() {
         name: r.card_name || '—',
         set: r.card_set || '—',
         img: r.card_image || '',
-        price: parseFloat(r.price) || 0,
-        paid: 0,
+        price: 0,
+        paid: parseFloat(r.price) || 0,
         forSale: r.status === 'for_sale'
       };
       if (r.display_type === 'raw') {
