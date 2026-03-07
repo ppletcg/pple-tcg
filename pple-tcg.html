@@ -942,8 +942,59 @@ svg.chart { width: 100%; height: 100px; }
   color: var(--text3);
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
+
+/* RAW / GRADED tabs */
+.sellers-type-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  width: fit-content;
+}
+.stt-btn {
+  padding: 5px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: none;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.stt-btn:last-child { border-right: none; }
+.stt-btn:hover { color: var(--text); background: var(--surface2); }
+.stt-btn.active { background: var(--accent); color: #08080d; }
+
+/* collapsible condition groups */
+.cond-group { margin-bottom: 8px; }
+.cg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s;
+}
+.cg-header:hover { border-color: var(--border2); }
+.cg-label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.5px; }
+.cg-meta { display: flex; align-items: center; gap: 8px; }
+.cg-count { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); }
+.cg-arrow { font-size: 0.6rem; color: var(--text3); transition: transform 0.2s; display: inline-block; }
+.cg-header.collapsed .cg-arrow { transform: rotate(-90deg); }
+.cg-body { padding-top: 6px; }
+.cg-body.hidden { display: none; }
 
 .seller-row {
   display: flex;
@@ -1470,6 +1521,10 @@ svg.chart { width: 100%; height: 100px; }
         ⚠ Esta carta no tiene datos de precio en Cardmarket aún.
       </div>
       <div class="sellers-hd">VENDEDORES <span id="sellersCount" style="color:var(--text3);font-weight:400;letter-spacing:0"></span></div>
+      <div class="sellers-type-tabs">
+        <button class="stt-btn active" onclick="switchSellerTab('raw',this)">RAW</button>
+        <button class="stt-btn" onclick="switchSellerTab('graded',this)">GRADED</button>
+      </div>
       <div id="sellersList"></div>
       <div class="buyers-hd" style="margin-top:18px">OFERTAS DE COMPRA <span id="buyersCount" style="color:var(--text3);font-weight:400;letter-spacing:0"></span></div>
       <div id="buyersList"></div>
@@ -1870,6 +1925,8 @@ async function openCard(id, name) {
   document.getElementById('buyersList').innerHTML='';
   document.getElementById('sellersCount').textContent='';
   document.getElementById('buyersCount').textContent='';
+  curSellerTab = 'raw'; allListings = []; curBasePrice = null;
+  document.querySelectorAll('.stt-btn').forEach((b,i) => { b.classList.toggle('active', i===0); });
   document.getElementById('noPriceNotice').style.display='none';
   ['pdTrend','pdLow','pdAvg1','pdAvg7','pdAvg30'].forEach(id=>document.getElementById(id).textContent='—');
   document.getElementById('chartDatapoints').innerHTML='';
@@ -1993,9 +2050,27 @@ let curModalCardName = null;
 let curModalCardImg = null;
 let curBuyListing = null;
 let curVerif = 'none';
+let curSellerTab = 'raw';
+let allListings = [];
+let curBasePrice = null;
+
+function switchSellerTab(tab, btn) {
+  curSellerTab = tab;
+  document.querySelectorAll('.stt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSellerGroups(allListings, curBasePrice);
+}
+
+window.toggleCondGroup = function(headerId) {
+  const header = document.getElementById(headerId);
+  const body = document.getElementById(headerId + '-body');
+  header.classList.toggle('collapsed');
+  body.classList.toggle('hidden');
+};
 
 async function renderSellers(cardId, basePrice) {
   curModalCardId = cardId;
+  curBasePrice = basePrice;
   const sl = document.getElementById('sellersList');
   const sc = document.getElementById('sellersCount');
   sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">Buscando vendedores...</div>';
@@ -2004,41 +2079,74 @@ async function renderSellers(cardId, basePrice) {
     .from('listings')
     .select('id, price, condition, display_type, seller_id')
     .eq('card_id', cardId)
-    .order('price', { ascending: true })
-    .limit(8);
+    .eq('sold', false)
+    .order('price', { ascending: true });
 
   if (!listings || !listings.length) {
     sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay vendedores para esta carta.</div>';
     sc.textContent = '';
+    allListings = [];
     return;
   }
 
+  allListings = listings;
   sc.textContent = `(${listings.length})`;
-  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
-  const cheapest = parseFloat(listings[0].price);
+  renderSellerGroups(listings, basePrice);
+}
 
-  sl.innerHTML = listings.map((l, i) => {
-    const price = parseFloat(l.price);
-    const below = basePrice && price <= basePrice;
-    const isBest = i === 0;
-    const cmpHtml = basePrice
-      ? `<div style="font-size:0.6rem;color:${below?'var(--nm)':'var(--mp)'};font-family:var(--font-mono);margin-top:2px">${below?'▼ bajo mercado':'▲ sobre mercado'}</div>`
-      : '';
-    const bestBadge = isBest ? `<span style="font-family:var(--font-mono);font-size:0.55rem;background:rgba(212,245,60,0.12);border:1px solid rgba(212,245,60,0.3);color:var(--accent);padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:0.5px">MEJOR</span>` : '';
-    const listingData = encodeURIComponent(JSON.stringify({id:l.id,price:l.price,condition:l.condition,display_type:l.display_type,seller_id:l.seller_id}));
-    return `
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid ${isBest?'rgba(212,245,60,0.2)':'var(--border)'};border-radius:6px;margin-bottom:6px;background:${isBest?'rgba(212,245,60,0.04)':'var(--surface2)'};">
-      <div style="flex:1;cursor:pointer" onclick="window.location.href='pple-tcg-perfil.html?uid=${l.seller_id}'">
-        <div style="font-size:0.72rem;font-weight:600;font-family:var(--font-mono);">${condLabel[l.condition] || l.condition || '—'}${bestBadge}</div>
-        <div style="font-size:0.62rem;color:var(--text3);font-family:var(--font-mono);">${l.display_type==='slab'?'Slab':'Raw'} · Ver perfil →</div>
+function renderSellerGroups(listings, basePrice) {
+  const sl = document.getElementById('sellersList');
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
+
+  const filtered = listings.filter(l =>
+    curSellerTab === 'raw' ? l.display_type === 'raw' : l.display_type === 'slab'
+  );
+
+  if (!filtered.length) {
+    sl.innerHTML = `<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay anuncios ${curSellerTab === 'raw' ? 'RAW' : 'GRADED'} para esta carta.</div>`;
+    return;
+  }
+
+  const groups = curSellerTab === 'raw' ? ['NM','LP','MP'] : ['PSA10','PSA9','PSA8'];
+  let html = '';
+
+  groups.forEach(cond => {
+    const group = filtered.filter(l => l.condition === cond);
+    if (!group.length) return;
+    const headerId = `cg-${cond}`;
+    const rowsHtml = group.map((l, i) => {
+      const price = parseFloat(l.price);
+      const isBest = i === 0;
+      const below = basePrice && price <= basePrice;
+      const cmpHtml = basePrice
+        ? `<div style="font-size:0.6rem;color:${below?'var(--nm)':'var(--mp)'};font-family:var(--font-mono);margin-top:2px">${below?'▼ bajo mercado':'▲ sobre mercado'}</div>`
+        : '';
+      const bestBadge = isBest ? `<span style="font-family:var(--font-mono);font-size:0.55rem;background:rgba(212,245,60,0.12);border:1px solid rgba(212,245,60,0.3);color:var(--accent);padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:0.5px">MEJOR</span>` : '';
+      return `
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid ${isBest?'rgba(212,245,60,0.2)':'var(--border)'};border-radius:6px;margin-bottom:6px;background:${isBest?'rgba(212,245,60,0.04)':'var(--surface2)'};">
+        <div style="flex:1;cursor:pointer" onclick="window.location.href='pple-tcg-perfil.html?uid=${l.seller_id}'">
+          <div style="font-size:0.72rem;font-weight:600;font-family:var(--font-mono);">Vendedor${bestBadge}</div>
+          <div style="font-size:0.62rem;color:var(--text3);font-family:var(--font-mono);">Ver perfil →</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${price.toFixed(2)}</div>
+          ${cmpHtml}
+        </div>
+        <button class="buy-now-btn" onclick="goToCheckout('${l.id}')">Comprar</button>
+      </div>`;
+    }).join('');
+
+    html += `
+    <div class="cond-group">
+      <div class="cg-header" id="${headerId}" onclick="toggleCondGroup('${headerId}')">
+        <span class="cg-label">▼ ${condLabel[cond] || cond} (${cond})</span>
+        <span class="cg-meta"><span class="cg-count">${group.length} vendedor${group.length > 1 ? 'es' : ''}</span></span>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${price.toFixed(2)}</div>
-        ${cmpHtml}
-      </div>
-      <button class="buy-now-btn" onclick="goToCheckout('${l.id}')">Comprar</button>
+      <div class="cg-body" id="${headerId}-body">${rowsHtml}</div>
     </div>`;
-  }).join('');
+  });
+
+  sl.innerHTML = html || `<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay anuncios ${curSellerTab === 'raw' ? 'RAW' : 'GRADED'} para esta carta.</div>`;
 }
 
 async function renderBuyOffers(cardId) {

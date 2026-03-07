@@ -951,7 +951,7 @@ function populateStep3() {
 
 }
 
-async function upsertPortfolioCard({ user_id, card_id, card_name, card_set, card_image, condition }) {
+async function upsertPortfolioCard({ user_id, card_id, card_name, card_set, card_image, condition, display_type }) {
   try {
     const { data: existing } = await sb
       .from('portfolio')
@@ -964,7 +964,7 @@ async function upsertPortfolioCard({ user_id, card_id, card_name, card_set, card
     if (existing) {
       await sb
         .from('portfolio')
-        .update({ quantity: (existing.quantity || 1) + 1 })
+        .update({ quantity: (existing.quantity || 1) + 1, status: 'for_sale' })
         .eq('id', existing.id);
     } else {
       await sb.from('portfolio').insert({
@@ -974,6 +974,7 @@ async function upsertPortfolioCard({ user_id, card_id, card_name, card_set, card
         card_set,
         card_image,
         condition,
+        display_type,
         quantity: 1,
         status: 'for_sale'
       });
@@ -1037,7 +1038,8 @@ async function publishListing() {
     card_name: card_name,
     card_set: selectedCard.set?.name || null,
     card_image: imgUrl,
-    condition: selectedCond
+    condition: selectedCond,
+    display_type: selectedDisplayType
   });
 
   document.getElementById('step3').classList.remove('active');

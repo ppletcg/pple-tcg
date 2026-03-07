@@ -747,10 +747,9 @@ function addToPortfolio() {
   document.getElementById('phUser').textContent = user.email;
 
   // Load portfolio from Supabase
-  // Expected table: portfolio (id, user_id, card_name, card_set, card_image, display_type, condition, price, paid, for_sale, cert)
   const { data: rows, error } = await sb
     .from('portfolio')
-    .select('id, card_name, card_set, card_image, display_type, condition, price, paid, for_sale, cert')
+    .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -762,15 +761,15 @@ function addToPortfolio() {
         set: r.card_set || '—',
         img: r.card_image || '',
         price: parseFloat(r.price) || 0,
-        paid: parseFloat(r.paid) || 0,
-        forSale: !!r.for_sale
+        paid: 0,
+        forSale: r.status === 'for_sale'
       };
       if (r.display_type === 'raw') {
         portfolio.raw.push({ ...entry, cond: r.condition || 'NM' });
       } else if (r.display_type === 'slab') {
-        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—' });
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—' });
       } else if (r.display_type === 'sealed') {
-        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: entry.price, qty: 1, paid: entry.paid, trend: '0%' });
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: entry.price, qty: r.quantity || 1, paid: 0, trend: '0%' });
       }
     });
   }
