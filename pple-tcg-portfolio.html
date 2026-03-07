@@ -210,6 +210,20 @@ svg.portfolio-chart{width:100%;height:180px;}
   .kpi-row{grid-template-columns:repeat(3,1fr);}
   .cards-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
 }
+
+/* Classification modal */
+.cm-cond-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;margin-bottom:8px;}
+.cm-cond-opt:last-child{margin-bottom:0;}
+.cm-cond-opt:hover{border-color:var(--border2);}
+.cm-cond-opt.selected{border-color:var(--accent);background:var(--accent-dim);}
+.cm-cond-indicator{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.cm-cond-label{font-family:var(--font-mono);font-size:0.75rem;font-weight:600;margin-bottom:2px;color:var(--text);}
+.cm-cond-desc{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);}
+.cm-card-preview{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:18px;}
+.cm-preview-img{width:40px;height:55px;object-fit:contain;border-radius:4px;background:var(--surface2);flex-shrink:0;}
+.cm-preview-name{font-size:0.88rem;font-weight:600;margin-bottom:3px;}
+.cm-preview-set{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);}
+.cm-section-label{font-family:var(--font-mono);font-size:0.6rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:block;}
 </style>
 </head>
 <body>
@@ -424,7 +438,105 @@ svg.portfolio-chart{width:100%;height:180px;}
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="document.getElementById('addModal').classList.remove('open')">Cancelar</button>
-      <button class="btn-add" id="btnModalAdd" onclick="addToPortfolio()" disabled>Añadir al portfolio</button>
+      <button class="btn-add" id="btnModalAdd" onclick="addToPortfolio()" disabled>Continuar &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLASSIFICATION MODAL -->
+<div class="modal-overlay" id="classifyModal" onclick="closeClassifyOverlay(event)">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title" id="cmTitle">CLASIFICAR CARTA</div>
+    <div class="modal-sub" id="cmSub">Selecciona el estado de la carta</div>
+
+    <!-- Card preview -->
+    <div class="cm-card-preview">
+      <img id="cmCardImg" class="cm-preview-img" src="" alt="" onerror="this.style.visibility='hidden'">
+      <div>
+        <div class="cm-preview-name" id="cmCardName">—</div>
+        <div class="cm-preview-set" id="cmCardSet">—</div>
+      </div>
+    </div>
+
+    <!-- RAW: condition selector -->
+    <div id="cmRawFields" style="display:none">
+      <span class="cm-section-label">Estado de la carta</span>
+      <div class="cm-cond-opt" data-val="NM" onclick="selectCondOpt(this)">
+        <div class="cm-cond-indicator" style="background:var(--nm)"></div>
+        <div>
+          <div class="cm-cond-label">NM — Near Mint</div>
+          <div class="cm-cond-desc">Prácticamente perfecta, sin marcas visibles</div>
+        </div>
+      </div>
+      <div class="cm-cond-opt" data-val="LP" onclick="selectCondOpt(this)">
+        <div class="cm-cond-indicator" style="background:var(--lp)"></div>
+        <div>
+          <div class="cm-cond-label">LP — Lightly Played</div>
+          <div class="cm-cond-desc">Pequeñas marcas de uso, apenas visibles</div>
+        </div>
+      </div>
+      <div class="cm-cond-opt" data-val="MP" onclick="selectCondOpt(this)">
+        <div class="cm-cond-indicator" style="background:var(--mp)"></div>
+        <div>
+          <div class="cm-cond-label">MP — Moderately Played</div>
+          <div class="cm-cond-desc">Desgaste visible, dobleces o arañazos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRADED / SLAB fields -->
+    <div id="cmSlabFields" style="display:none">
+      <div class="fg-row">
+        <div class="form-group">
+          <label class="fg-label">Empresa</label>
+          <select class="fg-input" id="cmCompany">
+            <option value="PSA">PSA</option>
+            <option value="BGS">BGS</option>
+            <option value="CGC">CGC</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="fg-label">Grado</label>
+          <select class="fg-input" id="cmGrade">
+            <option value="10">10</option>
+            <option value="9.5">9.5</option>
+            <option value="9">9</option>
+            <option value="8.5">8.5</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="fg-label">Número de certificado</label>
+        <input class="fg-input" type="text" id="cmCert" placeholder="Ej: 12345678">
+      </div>
+    </div>
+
+    <!-- SEALED fields -->
+    <div id="cmSealedFields" style="display:none">
+      <div class="fg-row">
+        <div class="form-group">
+          <label class="fg-label">Tipo de producto</label>
+          <select class="fg-input" id="cmSealedType">
+            <option value="Booster Box">Booster Box</option>
+            <option value="ETB">ETB</option>
+            <option value="Booster Pack">Booster Pack</option>
+            <option value="Display">Display</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="fg-label">Estado</label>
+          <select class="fg-input" id="cmSealedStatus">
+            <option value="sealed">Sellado</option>
+            <option value="opened">Abierto</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:20px">
+      <button class="btn-cancel" onclick="closeClassifyModal()">Cancelar</button>
+      <button class="btn-add" id="btnConfirmClassify" onclick="confirmClassification()">Confirmar</button>
     </div>
   </div>
 </div>
@@ -705,35 +817,164 @@ async function modalSearchCards(q) {
 }
 
 function selectModalCard(card) {
-  selectedModalCard=card;
-  document.getElementById('modalSearch').value=card.name;
-  document.getElementById('modalResults').innerHTML=`
+  selectedModalCard = card;
+  document.getElementById('modalSearch').value = card.name;
+  document.getElementById('modalResults').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);border-radius:6px;">
-      <img class="sr-thumb" src="${card.image?card.image+'/low.png':''}" onerror="this.style.display='none'">
+      <img class="sr-thumb" src="${card.image ? card.image+'/low.png' : ''}" onerror="this.style.display='none'">
       <div style="flex:1"><div class="sr-name">${card.name}</div><div class="sr-set">${card.set?.name||'—'} · #${card.localId}</div></div>
-      <div style="color:var(--nm);font-family:var(--font-mono);font-size:0.7rem">✓ Seleccionada</div>
+      <div style="color:var(--nm);font-family:var(--font-mono);font-size:0.7rem">&#10003; Seleccionada</div>
     </div>`;
-  document.getElementById('modalExtraFields').style.display='block';
-  document.getElementById('btnModalAdd').disabled=false;
+  document.getElementById('modalExtraFields').style.display = 'none';
+  document.getElementById('btnModalAdd').disabled = false;
 }
 
 function addToPortfolio() {
-  if(!selectedModalCard)return;
-  const cond=document.getElementById('modalCond').value;
-  const paid=parseFloat(document.getElementById('modalPaid').value)||0;
-  const entry={
-    id:selectedModalCard.id, name:selectedModalCard.name,
-    set:selectedModalCard.set?.name||'—',
-    img:selectedModalCard.image?selectedModalCard.image+'/high.png':null,
-    price:paid||20, paid:paid, forSale:false
-  };
-  if(modalMode==='raw'){entry.cond=cond;portfolio.raw.push(entry);}
-  else if(modalMode==='psa'){entry.grade=cond;entry.cert='—';portfolio.psa.push(entry);}
-  else if(modalMode==='wish'){entry.target=paid;portfolio.wishlist.push(entry);}
+  if (!selectedModalCard) return;
+  // Close search modal and open classification modal
   document.getElementById('addModal').classList.remove('open');
-  const total=computeTotals();
-  renderGrids();
-  drawPortfolioChart(currentPeriod,total);
+  openClassifyModal();
+}
+
+// ---- CLASSIFICATION MODAL ----
+function openClassifyModal() {
+  const card = selectedModalCard;
+  const modal = document.getElementById('classifyModal');
+
+  // Populate card preview
+  const img = card.image ? card.image + '/low.png' : '';
+  document.getElementById('cmCardImg').src = img;
+  document.getElementById('cmCardImg').style.visibility = 'visible';
+  document.getElementById('cmCardName').textContent = card.name;
+  document.getElementById('cmCardSet').textContent = (card.set?.name || '—') + ' · #' + card.localId;
+
+  // Reset condition selection
+  document.querySelectorAll('.cm-cond-opt').forEach(o => o.classList.remove('selected'));
+
+  // Reset inputs
+  document.getElementById('cmCert').value = '';
+
+  // Show/hide fields by mode
+  document.getElementById('cmRawFields').style.display   = modalMode === 'raw'    ? 'block' : 'none';
+  document.getElementById('cmSlabFields').style.display  = modalMode === 'psa'    ? 'block' : 'none';
+  document.getElementById('cmSealedFields').style.display = modalMode === 'sealed' ? 'block' : 'none';
+
+  // Set title/sub
+  const titles = {
+    raw:    'CLASIFICAR CARTA RAW',
+    psa:    'CLASIFICAR CARTA GRADED',
+    sealed: 'CLASIFICAR PRODUCTO SELLADO'
+  };
+  const subs = {
+    raw:    'Selecciona el estado de conservación',
+    psa:    'Indica empresa, grado y certificado',
+    sealed: 'Especifica el tipo y estado del producto'
+  };
+  document.getElementById('cmTitle').textContent = titles[modalMode] || 'CLASIFICAR';
+  document.getElementById('cmSub').textContent   = subs[modalMode]   || '';
+
+  const btn = document.getElementById('btnConfirmClassify');
+  btn.disabled = false;
+  btn.textContent = 'Confirmar';
+
+  modal.classList.add('open');
+}
+
+function closeClassifyModal() {
+  document.getElementById('classifyModal').classList.remove('open');
+}
+
+function closeClassifyOverlay(e) {
+  if (e.target === document.getElementById('classifyModal'))
+    document.getElementById('classifyModal').classList.remove('open');
+}
+
+function selectCondOpt(el) {
+  document.querySelectorAll('.cm-cond-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function confirmClassification() {
+  const btn = document.getElementById('btnConfirmClassify');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const { data: { user }, error: authErr } = await sb.auth.getUser();
+    if (authErr || !user) throw new Error('No autenticado');
+
+    const card = selectedModalCard;
+    const card_id    = card.id;
+    const card_name  = card.name;
+    const card_set   = card.set?.name || '—';
+    const card_image = card.image ? card.image + '/high.png' : null;
+
+    let display_type, condition, cert = null, sealed_status = null;
+
+    if (modalMode === 'raw') {
+      const sel = document.querySelector('.cm-cond-opt.selected');
+      if (!sel) {
+        btn.disabled = false; btn.textContent = 'Confirmar';
+        return;
+      }
+      display_type = 'raw';
+      condition    = sel.dataset.val; // NM | LP | MP
+
+    } else if (modalMode === 'psa') {
+      const company = document.getElementById('cmCompany').value;
+      const grade   = document.getElementById('cmGrade').value;
+      display_type  = 'slab';
+      condition     = company + grade; // e.g. PSA10, BGS9.5
+      cert          = document.getElementById('cmCert').value.trim() || null;
+
+    } else if (modalMode === 'sealed') {
+      display_type  = 'sealed';
+      condition     = document.getElementById('cmSealedType').value; // Booster Box | ETB | ...
+      sealed_status = document.getElementById('cmSealedStatus').value; // sealed | opened
+    }
+
+    // Check for existing row: user_id + card_id + condition
+    const { data: existing } = await sb
+      .from('portfolio')
+      .select('id, quantity')
+      .eq('user_id', user.id)
+      .eq('card_id', card_id)
+      .eq('condition', condition)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await sb
+        .from('portfolio')
+        .update({ quantity: existing.quantity + 1 })
+        .eq('id', existing.id);
+      if (error) throw error;
+    } else {
+      const row = {
+        user_id: user.id,
+        card_id,
+        card_name,
+        card_set,
+        card_image,
+        display_type,
+        condition,
+        quantity: 1,
+        status: 'owned'
+      };
+      if (cert !== null) row.cert = cert;
+      if (sealed_status !== null) row.sealed_status = sealed_status;
+
+      const { error } = await sb.from('portfolio').insert(row);
+      if (error) throw error;
+    }
+
+    document.getElementById('classifyModal').classList.remove('open');
+    window.location.reload();
+
+  } catch (err) {
+    console.error('Error guardando en portfolio:', err);
+    btn.disabled = false;
+    btn.textContent = 'Confirmar';
+  }
 }
 
 // ---- INIT (data loaded async by Supabase block below) ----
