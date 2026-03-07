@@ -248,7 +248,7 @@ svg.portfolio-chart{width:100%;height:180px;}
   </div>
   <div class="ph-right">
     <button class="btn-outline">Exportar CSV</button>
-    <button class="btn-accent">+ Añadir</button>
+    <button class="btn-accent" onclick="openModal('raw')">+ Añadir</button>
   </div>
 </div>
 
@@ -1033,7 +1033,7 @@ async function loadListingsSection(userId) {
 
   const { data: rows, error } = await sb
     .from('listings')
-    .select('id, card_name, card_set, card_image, condition, price, display_type')
+    .select('id, card_id, card_name, card_set, card_image, condition, price, display_type')
     .eq('seller_id', userId)
     .eq('sold', false)
     .order('card_name', { ascending: true });
@@ -1051,12 +1051,50 @@ async function loadListingsSection(userId) {
     return;
   }
 
-  const condClass = { NM:'raw-nm', LP:'raw-lp', MP:'raw-lp', PSA10:'grade-10', PSA9:'grade-9', PSA8:'grade-8' };
+  // BUG 1 & 2: Group listings by card_id + condition + display_type
+  // to populate RAW and SLABS PSA sections with correct totals
+  const groups = {};
+  rows.forEach(r => {
+    const key = `${r.card_id}||${r.condition}||${r.display_type}`;
+    if (!groups[key]) {
+      groups[key] = {
+        id: r.id,
+        name: r.card_name || '—',
+        set: r.card_set || '—',
+        img: r.card_image || '',
+        price: 0,
+        paid: 0,
+        forSale: true,
+        cond: r.condition || 'NM',
+        grade: r.condition || 'PSA10',
+        cert: '—',
+        qty: 0,
+        display_type: r.display_type
+      };
+    }
+    groups[key].qty += 1;
+    groups[key].price += parseFloat(r.price) || 0;
+  });
 
+  // Populate portfolio arrays (replace any data loaded from portfolio table)
+  portfolio.raw = [];
+  portfolio.psa = [];
+  Object.values(groups).forEach(g => {
+    if (g.display_type === 'raw') portfolio.raw.push(g);
+    else if (g.display_type === 'slab') portfolio.psa.push(g);
+  });
+
+  // Re-render grids and totals with listings data
+  const total = computeTotals();
+  renderGrids();
+  drawPortfolioChart(currentPeriod, total);
+
+  // Mis Anuncios section stats and grid
   const totalVal = rows.reduce((s, r) => s + (parseFloat(r.price) || 0), 0);
   countEl.textContent = `${rows.length} anuncios`;
   valEl.textContent = `€${totalVal.toFixed(2)}`;
 
+  const condClass = { NM:'raw-nm', LP:'raw-lp', MP:'raw-lp', PSA10:'grade-10', PSA9:'grade-9', PSA8:'grade-8' };
   grid.innerHTML = rows.map(r => {
     const cond = r.condition || 'NM';
     const price = parseFloat(r.price) || 0;
