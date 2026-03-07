@@ -1597,7 +1597,7 @@ async function openCard(id, name) {
     }
     drawChart(cm,'7d');
     updateChartDatapoints(cm,'7d');
-    renderSellers(price,cm);
+    renderSellers(id,price,cm);
   } catch(e) { document.getElementById('mSet').textContent='Error al cargar'; }
 }
 
@@ -1672,8 +1672,41 @@ function switchChart(period,btn){
   updateChartDatapoints(curPricing,period);
 }
 
-function renderSellers(basePrice,cm){
-  document.getElementById('sellersList').innerHTML='<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay vendedores para esta carta.</div>';
+async function renderSellers(cardId, basePrice, cm) {
+  const sl = document.getElementById('sellersList');
+  sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">Buscando vendedores...</div>';
+
+  const { data: listings } = await sb
+    .from('listings')
+    .select('id, price, condition, display_type, seller_id')
+    .eq('card_id', cardId)
+    .order('price', { ascending: true })
+    .limit(8);
+
+  if (!listings || !listings.length) {
+    sl.innerHTML = '<div style="color:var(--text3);font-size:0.75rem;padding:10px;font-family:var(--font-mono)">No hay vendedores para esta carta.</div>';
+    return;
+  }
+
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
+  sl.innerHTML = listings.map(l => {
+    const below = basePrice && parseFloat(l.price) <= basePrice;
+    const cmpHtml = basePrice
+      ? `<div style="font-size:0.62rem;color:${below?'var(--nm)':'var(--mp)'};font-family:var(--font-mono);">${below?'▼ bajo mercado':'▲ sobre mercado'}</div>`
+      : '';
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;background:var(--surface2);cursor:pointer;"
+         onclick="window.location.href='pple-tcg-perfil.html?uid=${l.seller_id}'">
+      <div>
+        <div style="font-size:0.72rem;font-weight:600;font-family:var(--font-mono);">${condLabel[l.condition] || l.condition || '—'}</div>
+        <div style="font-size:0.62rem;color:var(--text3);font-family:var(--font-mono);">${l.display_type==='slab'?'Slab':'Raw'} · Ver perfil →</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${parseFloat(l.price).toFixed(2)}</div>
+        ${cmpHtml}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function closeModal(){document.getElementById('overlay').classList.remove('open');}

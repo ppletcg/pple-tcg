@@ -380,6 +380,11 @@ function toggleFollow() {
   btn.textContent = following ? '✓ Siguiendo' : '+ Seguir';
   btn.classList.toggle('following', following);
 }
+
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'pple-tcg-auth.html';
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="sb.js"></script>
@@ -394,12 +399,27 @@ function toggleFollow() {
   const profileId = targetId || (user ? user.id : null);
   const isOwnProfile = user && profileId === user.id;
 
-  // Hide follow/message buttons on own profile
+  // Hide follow/message buttons on own profile; show account controls instead
   if (isOwnProfile || !user) {
     const btnFollow = document.getElementById('btnFollow');
     const btnMsg = btnFollow && btnFollow.closest('.ph-actions').querySelector('.btn-msg');
     if (btnFollow) btnFollow.style.display = 'none';
     if (btnMsg) btnMsg.style.display = 'none';
+  }
+  if (isOwnProfile) {
+    const rightCol = document.querySelector('.right-col');
+    const acctCard = document.createElement('div');
+    acctCard.className = 'sidebar-card';
+    acctCard.innerHTML = `
+      <div class="sc-title">MI CUENTA</div>
+      <div class="sc-row">
+        <span class="sc-label">Email</span>
+        <span class="sc-val" style="word-break:break-all;font-size:0.65rem;">${user.email}</span>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-outline" style="width:100%;padding:10px;border-color:var(--mp);color:var(--mp);" onclick="doLogout()">Cerrar sesion</button>
+      </div>`;
+    rightCol.insertBefore(acctCard, rightCol.firstChild);
   }
 
   if (!profileId) {
