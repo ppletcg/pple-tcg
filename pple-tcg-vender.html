@@ -951,6 +951,38 @@ function populateStep3() {
 
 }
 
+async function upsertPortfolioCard({ user_id, card_id, card_name, card_set, card_image, condition }) {
+  try {
+    const { data: existing } = await sb
+      .from('portfolio')
+      .select('id, quantity')
+      .eq('user_id', user_id)
+      .eq('card_id', card_id)
+      .eq('condition', condition)
+      .maybeSingle();
+
+    if (existing) {
+      await sb
+        .from('portfolio')
+        .update({ quantity: (existing.quantity || 1) + 1 })
+        .eq('id', existing.id);
+    } else {
+      await sb.from('portfolio').insert({
+        user_id,
+        card_id,
+        card_name,
+        card_set,
+        card_image,
+        condition,
+        quantity: 1,
+        status: 'for_sale'
+      });
+    }
+  } catch (e) {
+    console.warn('[portfolio upsert] error:', e.message);
+  }
+}
+
 async function publishListing() {
   if (!currentUser) {
     window.location.href = 'pple-tcg-auth.html';
@@ -997,6 +1029,16 @@ async function publishListing() {
     alert('Error al publicar: ' + error.message);
     return;
   }
+
+  // Auto-add card to portfolio (upsert: increment quantity if already exists)
+  await upsertPortfolioCard({
+    user_id: currentUser.id,
+    card_id: card_id,
+    card_name: card_name,
+    card_set: selectedCard.set?.name || null,
+    card_image: imgUrl,
+    condition: selectedCond
+  });
 
   document.getElementById('step3').classList.remove('active');
   [1,2,3].forEach(i => document.getElementById(`stab${i}`).classList.remove('active','done'));

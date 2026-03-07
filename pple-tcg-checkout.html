@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Confirmar Compra</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080d;
+  --bg2: #0e0e16;
+  --surface: #11111c;
+  --surface2: #181825;
+  --border: #22223a;
+  --border2: #2d2d4a;
+  --accent: #d4f53c;
+  --accent-glow: rgba(212,245,60,0.15);
+  --accent-dim: rgba(212,245,60,0.06);
+  --red: #ff4757;
+  --green: #2ed573;
+  --yellow: #ffa502;
+  --text: #eeeef8;
+  --text2: #9898b8;
+  --text3: #55556a;
+  --nm: #2ed573;
+  --lp: #ffa502;
+  --mp: #ff4757;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* NAV */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 60px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(8,8,13,0.95);
+  backdrop-filter: blur(24px);
+  z-index: 100;
+}
+.logo { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 3px; color: var(--text); line-height: 1; cursor: pointer; }
+.logo .dot { color: var(--accent); }
+.nav-back { display: flex; align-items: center; gap: 8px; padding: 7px 16px; border: 1px solid var(--border); border-radius: 6px; background: none; color: var(--text2); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; }
+.nav-back:hover { border-color: var(--border2); color: var(--text); }
+.nav-right { display: flex; gap: 10px; align-items: center; }
+.nav-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#3d2a6e,#d4f53c); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:0.72rem; font-weight:700; color:#08080d; cursor:pointer; border:1px solid rgba(212,245,60,0.3); }
+
+/* PAGE SHELL */
+.page-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+}
+
+/* LOADING / ERROR */
+.state-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px;
+  text-align: center;
+}
+.state-icon { font-size: 2.4rem; margin-bottom: 14px; }
+.state-title { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 6px; }
+.state-sub { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text3); letter-spacing: 0.5px; }
+
+/* CHECKOUT GRID */
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* CARD */
+.ck-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ck-card-header {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ck-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.ck-card-body { padding: 20px 22px; }
+
+/* CARD SUMMARY */
+.card-summary {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.card-thumb {
+  width: 80px;
+  height: 110px;
+  background: linear-gradient(135deg, #13132a, #1a1a35);
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.card-meta { flex: 1; min-width: 0; }
+.card-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+.card-set {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.tag-nm { background: rgba(46,213,115,0.12); border: 1px solid rgba(46,213,115,0.3); color: var(--nm); }
+.tag-lp { background: rgba(255,165,2,0.12); border: 1px solid rgba(255,165,2,0.3); color: var(--lp); }
+.tag-mp { background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.3); color: var(--mp); }
+.tag-raw { background: rgba(152,152,184,0.1); border: 1px solid rgba(152,152,184,0.2); color: var(--text2); }
+.tag-slab { background: rgba(212,245,60,0.08); border: 1px solid rgba(212,245,60,0.2); color: var(--accent); }
+.card-seller {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  letter-spacing: 0.5px;
+}
+.card-seller span { color: var(--text2); }
+.card-price {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-top: 10px;
+}
+
+/* SHIPPING OPTIONS */
+.ship-opts { display: flex; flex-direction: column; gap: 8px; }
+.ship-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ship-opt:hover { border-color: var(--border2); }
+.ship-opt.selected { border-color: var(--accent); background: var(--accent-dim); }
+.ship-opt input[type=radio] { display: none; }
+.so-icon { font-size: 1.1rem; flex-shrink: 0; }
+.so-info { flex: 1; min-width: 0; }
+.so-name { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.3px; color: var(--text); }
+.so-desc { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); margin-top: 2px; letter-spacing: 0.2px; }
+.so-price { font-family: var(--font-display); font-size: 1rem; color: var(--accent); flex-shrink: 0; letter-spacing: 0.5px; }
+
+/* BUYER PROTECTION */
+.bp-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bp-wrap:hover { border-color: var(--border2); }
+.bp-wrap.selected { border-color: rgba(46,213,115,0.4); background: rgba(46,213,115,0.05); }
+.bp-check {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border2);
+  border-radius: 4px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.15s;
+  font-size: 0.7rem;
+}
+.bp-wrap.selected .bp-check { background: var(--nm); border-color: var(--nm); color: #08080d; font-weight: 700; }
+.bp-info { flex: 1; }
+.bp-title { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.3px; color: var(--text); }
+.bp-badge { display: inline-block; margin-left: 8px; background: rgba(46,213,115,0.12); border: 1px solid rgba(46,213,115,0.25); color: var(--nm); font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.5px; vertical-align: middle; }
+.bp-desc { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); margin-top: 5px; line-height: 1.5; letter-spacing: 0.2px; }
+
+/* VERIFICATION OPTIONS */
+.verif-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.verif-opt {
+  padding: 14px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.verif-opt:hover { border-color: var(--border2); }
+.verif-opt.selected { border-color: var(--accent); background: var(--accent-dim); }
+.vo-icon { font-size: 1.3rem; margin-bottom: 6px; }
+.vo-name { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px; color: var(--text); margin-bottom: 3px; }
+.vo-desc { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text3); letter-spacing: 0.2px; margin-bottom: 6px; line-height: 1.4; }
+.vo-price { font-family: var(--font-display); font-size: 0.9rem; color: var(--accent); letter-spacing: 0.5px; }
+
+/* PRICE BREAKDOWN (sticky right column) */
+.breakdown-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  position: sticky;
+  top: 80px;
+}
+.bd-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.bd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.bd-row:last-of-type { border-bottom: none; }
+.bd-label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text3); letter-spacing: 0.3px; }
+.bd-val { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text2); font-weight: 500; }
+.bd-val.zero { color: var(--text3); }
+.bd-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border2);
+}
+.bd-total-label { font-family: var(--font-display); font-size: 1rem; letter-spacing: 1px; }
+.bd-total-val { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 1px; color: var(--accent); }
+.confirm-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #08080d;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.confirm-btn:hover { box-shadow: 0 0 24px var(--accent-glow); transform: translateY(-1px); }
+.confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.secure-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text3);
+  letter-spacing: 0.3px;
+}
+
+/* SECTION SPACING */
+.section-gap { margin-bottom: 16px; }
+
+@media (max-width: 700px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .breakdown-card { position: static; }
+  nav { padding: 0 18px; }
+  .page-wrap { padding: 24px 16px 60px; }
+  .verif-opts { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="window.location.href='pple-tcg.html'">PPLE<span class="dot">.</span>TCG</div>
+  <button class="nav-back" onclick="history.back()">&#8592; Volver</button>
+  <div class="nav-right" id="navRight"></div>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-eyebrow">Compra segura</div>
+  <div class="page-title">CONFIRMAR COMPRA</div>
+
+  <!-- Loading state -->
+  <div class="state-box" id="stateLoading">
+    <div class="state-icon">&#8987;</div>
+    <div class="state-title">Cargando anuncio...</div>
+    <div class="state-sub">Obteniendo detalles de la carta</div>
+  </div>
+
+  <!-- Error state -->
+  <div class="state-box" id="stateError" style="display:none">
+    <div class="state-icon">&#9888;</div>
+    <div class="state-title">No encontrado</div>
+    <div class="state-sub" id="stateErrorMsg">El anuncio no existe o ha sido eliminado.</div>
+  </div>
+
+  <!-- Checkout content -->
+  <div id="checkoutContent" style="display:none">
+    <div class="checkout-grid">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- CARD SUMMARY -->
+        <div class="ck-card section-gap">
+          <div class="ck-card-header">
+            <div class="ck-section-label">Carta</div>
+            <div class="card-summary">
+              <div class="card-thumb" id="ckThumb">&#127924;</div>
+              <div class="card-meta">
+                <div class="card-name" id="ckName">—</div>
+                <div class="card-set" id="ckSet">—</div>
+                <div class="card-tags" id="ckTags"></div>
+                <div class="card-seller">Vendedor: <span id="ckSeller">—</span></div>
+                <div class="card-price" id="ckPrice">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHIPPING -->
+        <div class="ck-card section-gap">
+          <div class="ck-card-header">
+            <div class="ck-section-label">Envio</div>
+          </div>
+          <div class="ck-card-body">
+            <div class="ship-opts">
+              <label class="ship-opt selected" onclick="selectShipping(this, 2.99)">
+                <input type="radio" name="shipping" value="2.99" checked>
+                <div class="so-icon">&#128236;</div>
+                <div class="so-info">
+                  <div class="so-name">Correos Estandar</div>
+                  <div class="so-desc">3–5 dias habiles · Seguimiento basico</div>
+                </div>
+                <div class="so-price">€2.99</div>
+              </label>
+              <label class="ship-opt" onclick="selectShipping(this, 5.99)">
+                <input type="radio" name="shipping" value="5.99">
+                <div class="so-icon">&#9889;</div>
+                <div class="so-info">
+                  <div class="so-name">Express</div>
+                  <div class="so-desc">24–48h · Seguimiento completo</div>
+                </div>
+                <div class="so-price">€5.99</div>
+              </label>
+              <label class="ship-opt" onclick="selectShipping(this, 1.80)">
+                <input type="radio" name="shipping" value="1.80">
+                <div class="so-icon">&#128274;</div>
+                <div class="so-info">
+                  <div class="so-name">Certificado</div>
+                  <div class="so-desc">Con acuse de recibo · Cartas de valor</div>
+                </div>
+                <div class="so-price">€1.80</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUYER PROTECTION -->
+        <div class="ck-card section-gap">
+          <div class="ck-card-header">
+            <div class="ck-section-label">Proteccion</div>
+          </div>
+          <div class="ck-card-body">
+            <div class="bp-wrap" id="bpWrap" onclick="toggleProtection()">
+              <div class="bp-check" id="bpCheck"></div>
+              <div class="bp-info">
+                <div class="bp-title">Proteccion al Comprador <span class="bp-badge">+3%</span></div>
+                <div class="bp-desc">
+                  Si la carta no coincide con la descripcion o no llega, te devolvemos el dinero integro.
+                  Reembolso garantizado en 48h tras la reclamacion.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VERIFICATION -->
+        <div class="ck-card section-gap">
+          <div class="ck-card-header">
+            <div class="ck-section-label">Verificacion</div>
+          </div>
+          <div class="ck-card-body">
+            <div class="verif-opts">
+              <div class="verif-opt selected" id="voptNone" onclick="selectVerif('none')">
+                <div class="vo-icon">&#8212;</div>
+                <div class="vo-name">Sin verif.</div>
+                <div class="vo-desc">Compra directa sin revision adicional</div>
+                <div class="vo-price">Gratis</div>
+              </div>
+              <div class="verif-opt" id="voptAI" onclick="selectVerif('ai')">
+                <div class="vo-icon">&#129302;</div>
+                <div class="vo-name">IA</div>
+                <div class="vo-desc">Analisis automatico por inteligencia artificial</div>
+                <div class="vo-price">+2%</div>
+              </div>
+              <div class="verif-opt" id="voptHuman" onclick="selectVerif('human')">
+                <div class="vo-icon">&#128100;</div>
+                <div class="vo-name">Experto</div>
+                <div class="vo-desc">Revision manual por experto certificado</div>
+                <div class="vo-price">+5%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end left column -->
+
+      <!-- RIGHT COLUMN — PRICE BREAKDOWN -->
+      <div class="breakdown-card">
+        <div class="bd-title">RESUMEN DEL PEDIDO</div>
+        <div class="bd-row">
+          <span class="bd-label">Precio carta</span>
+          <span class="bd-val" id="bdCard">—</span>
+        </div>
+        <div class="bd-row">
+          <span class="bd-label">Envio</span>
+          <span class="bd-val" id="bdShipping">€2.99</span>
+        </div>
+        <div class="bd-row">
+          <span class="bd-label">Verificacion</span>
+          <span class="bd-val zero" id="bdVerif">€0.00</span>
+        </div>
+        <div class="bd-row">
+          <span class="bd-label">Proteccion comprador</span>
+          <span class="bd-val zero" id="bdProtection">€0.00</span>
+        </div>
+        <div class="bd-total-row">
+          <span class="bd-total-label">TOTAL</span>
+          <span class="bd-total-val" id="bdTotal">—</span>
+        </div>
+        <button class="confirm-btn" id="btnConfirm" onclick="confirmPurchase()">CONFIRMAR COMPRA</button>
+        <div class="secure-note">&#128274; Pago seguro · Datos cifrados SSL</div>
+      </div>
+
+    </div><!-- end checkout-grid -->
+  </div><!-- end checkoutContent -->
+
+</div><!-- end page-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
+<script>
+// ---- STATE ----
+let listing = null;
+let sellerUsername = '—';
+let shippingPrice = 2.99;
+let verifType = 'none';
+let protectionEnabled = false;
+
+// ---- INIT ----
+async function init() {
+  await initNav();
+
+  const params = new URLSearchParams(window.location.search);
+  const listingId = params.get('listing_id');
+
+  if (!listingId) {
+    showError('No se especificó ningún anuncio.');
+    return;
+  }
+
+  const { data, error } = await sb
+    .from('listings')
+    .select('*, profiles:seller_id(username)')
+    .eq('id', listingId)
+    .single();
+
+  if (error || !data) {
+    showError('El anuncio no existe o ha sido eliminado.');
+    return;
+  }
+
+  listing = data;
+  sellerUsername = data.profiles?.username || '—';
+
+  renderListing();
+  updateBreakdown();
+
+  document.getElementById('stateLoading').style.display = 'none';
+  document.getElementById('checkoutContent').style.display = 'block';
+}
+
+function showError(msg) {
+  document.getElementById('stateLoading').style.display = 'none';
+  document.getElementById('stateErrorMsg').textContent = msg;
+  document.getElementById('stateError').style.display = 'block';
+}
+
+// ---- RENDER LISTING ----
+function renderListing() {
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
+  const condClass = { NM:'nm', LP:'lp', MP:'mp', PSA10:'nm', PSA9:'nm', PSA8:'lp' };
+
+  const thumb = document.getElementById('ckThumb');
+  if (listing.card_image) {
+    thumb.innerHTML = `<img src="${listing.card_image}" alt="${listing.card_name || ''}" onerror="this.parentNode.innerHTML='&#127924;'">`;
+  }
+
+  document.getElementById('ckName').textContent = listing.card_name || '—';
+  document.getElementById('ckSet').textContent = listing.card_set || '—';
+  document.getElementById('ckSeller').textContent = sellerUsername;
+  document.getElementById('ckPrice').textContent = `€${parseFloat(listing.price).toFixed(2)}`;
+  document.getElementById('bdCard').textContent = `€${parseFloat(listing.price).toFixed(2)}`;
+
+  const cond = listing.condition || 'NM';
+  const tagClass = `tag-${condClass[cond] || 'raw'}`;
+  const typeTag = listing.display_type === 'slab'
+    ? `<span class="tag tag-slab">SLAB</span>`
+    : `<span class="tag tag-raw">RAW</span>`;
+
+  document.getElementById('ckTags').innerHTML =
+    `<span class="tag ${tagClass}">${condLabel[cond] || cond}</span>${typeTag}`;
+}
+
+// ---- SHIPPING ----
+function selectShipping(el, price) {
+  document.querySelectorAll('.ship-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  shippingPrice = price;
+  updateBreakdown();
+}
+
+// ---- PROTECTION ----
+function toggleProtection() {
+  protectionEnabled = !protectionEnabled;
+  const wrap = document.getElementById('bpWrap');
+  const check = document.getElementById('bpCheck');
+  wrap.classList.toggle('selected', protectionEnabled);
+  check.textContent = protectionEnabled ? '✓' : '';
+  updateBreakdown();
+}
+
+// ---- VERIFICATION ----
+function selectVerif(type) {
+  verifType = type;
+  ['voptNone','voptAI','voptHuman'].forEach(id => document.getElementById(id).classList.remove('selected'));
+  const map = { none:'voptNone', ai:'voptAI', human:'voptHuman' };
+  document.getElementById(map[type]).classList.add('selected');
+  updateBreakdown();
+}
+
+// ---- BREAKDOWN ----
+function updateBreakdown() {
+  if (!listing) return;
+  const base = parseFloat(listing.price);
+  const verifRate = verifType === 'ai' ? 0.02 : verifType === 'human' ? 0.05 : 0;
+  const verifFee = base * verifRate;
+  const protFee = protectionEnabled ? base * 0.03 : 0;
+  const total = base + shippingPrice + verifFee + protFee;
+
+  document.getElementById('bdShipping').textContent = `€${shippingPrice.toFixed(2)}`;
+
+  const verifEl = document.getElementById('bdVerif');
+  verifEl.textContent = verifFee > 0 ? `€${verifFee.toFixed(2)}` : '€0.00';
+  verifEl.className = `bd-val${verifFee > 0 ? '' : ' zero'}`;
+
+  const protEl = document.getElementById('bdProtection');
+  protEl.textContent = protFee > 0 ? `€${protFee.toFixed(2)}` : '€0.00';
+  protEl.className = `bd-val${protFee > 0 ? '' : ' zero'}`;
+
+  document.getElementById('bdTotal').textContent = `€${total.toFixed(2)}`;
+}
+
+// ---- CONFIRM PURCHASE ----
+async function confirmPurchase() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    window.location.href = 'pple-tcg-auth.html';
+    return;
+  }
+  if (!listing) return;
+
+  const btn = document.getElementById('btnConfirm');
+  btn.textContent = 'Procesando...';
+  btn.disabled = true;
+
+  const base = parseFloat(listing.price);
+  const verifRate = verifType === 'ai' ? 0.02 : verifType === 'human' ? 0.05 : 0;
+  const verifFee = parseFloat((base * verifRate).toFixed(2));
+  const protFee = protectionEnabled ? parseFloat((base * 0.03).toFixed(2)) : 0;
+  const total = parseFloat((base + shippingPrice + verifFee + protFee).toFixed(2));
+
+  const { error } = await sb.from('orders').insert({
+    buyer_id: user.id,
+    seller_id: listing.seller_id,
+    listing_id: listing.id,
+    card_id: listing.card_id,
+    price_card: base,
+    shipping_price: shippingPrice,
+    verification_type: verifType,
+    verification_fee: verifFee,
+    buyer_protection_fee: protFee,
+    total_price: total,
+    status: 'pending_payment'
+  });
+
+  if (error) {
+    btn.textContent = 'CONFIRMAR COMPRA';
+    btn.disabled = false;
+    alert('Error al procesar la compra: ' + error.message);
+    return;
+  }
+
+  window.location.href = 'order-confirmation.html';
+}
+
+init();
+</script>
+</body>
+</html>

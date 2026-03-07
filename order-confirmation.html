@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pple.tcg · Pedido Confirmado</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080d; --bg2:#0e0e16; --surface:#11111c;
+  --border:#22223a; --border2:#2d2d4a;
+  --accent:#d4f53c; --accent-glow:rgba(212,245,60,0.15); --accent-dim:rgba(212,245,60,0.06);
+  --text:#eeeef8; --text2:#9898b8; --text3:#55556a;
+  --nm:#2ed573;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-mono:'DM Mono',monospace;
+  --font-body:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;mix-blend-mode:overlay;}
+.box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:48px 44px;max-width:440px;width:100%;text-align:center;animation:fadeIn 0.4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.check-circle{width:72px;height:72px;border-radius:50%;background:rgba(46,213,115,0.12);border:2px solid rgba(46,213,115,0.3);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 24px;}
+.title{font-family:var(--font-display);font-size:2rem;letter-spacing:2px;margin-bottom:8px;}
+.sub{font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);letter-spacing:0.5px;line-height:1.6;margin-bottom:28px;}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.info-row{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.68rem;margin-bottom:10px;}
+.info-label{color:var(--text3);}
+.info-val{color:var(--text2);}
+.btn-primary{display:block;width:100%;padding:13px;margin-top:24px;border:none;border-radius:8px;background:var(--accent);color:#08080d;font-family:var(--font-display);font-size:1rem;letter-spacing:2px;cursor:pointer;transition:all 0.15s;text-decoration:none;text-align:center;}
+.btn-primary:hover{box-shadow:0 0 24px var(--accent-glow);}
+.btn-secondary{display:block;width:100%;padding:11px;margin-top:8px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text2);font-family:var(--font-mono);font-size:0.72rem;cursor:pointer;transition:all 0.15s;text-decoration:none;text-align:center;}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text);}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="check-circle">&#10003;</div>
+  <div class="title">PEDIDO CONFIRMADO</div>
+  <div class="sub">Tu pedido ha sido registrado correctamente.<br>El vendedor recibirá una notificación y preparará el envío.</div>
+  <hr class="divider">
+  <div class="info-row"><span class="info-label">Estado</span><span class="info-val" style="color:var(--nm)">Pendiente de pago</span></div>
+  <div class="info-row"><span class="info-label">Tiempo de respuesta</span><span class="info-val">24–48h</span></div>
+  <div class="info-row"><span class="info-label">Soporte</span><span class="info-val">soporte@pple.tcg</span></div>
+  <a class="btn-primary" href="pple-tcg-seguimiento.html">Ver mis pedidos</a>
+  <a class="btn-secondary" href="pple-tcg.html">Seguir comprando</a>
+</div>
+</body>
+</html>

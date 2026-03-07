@@ -169,6 +169,12 @@ svg.portfolio-chart{width:100%;height:180px;}
 .es-title{font-family:var(--font-display);font-size:1rem;letter-spacing:1px;color:var(--text2);margin-bottom:4px;}
 .es-sub{font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:0.3px;}
 
+/* QUANTITY BADGE */
+.qty-badge{position:absolute;top:7px;right:7px;background:#08080d;color:var(--accent);font-family:var(--font-mono);font-size:0.6rem;font-weight:700;letter-spacing:0.5px;padding:2px 7px;border-radius:4px;border:1px solid rgba(212,245,60,0.35);line-height:1.4;z-index:1;}
+
+/* LISTING CARD loading */
+.pcard-loading{display:flex;align-items:center;justify-content:center;height:100px;font-family:var(--font-mono);font-size:0.65rem;color:var(--text3);letter-spacing:1px;}
+
 /* Add card modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(4,4,8,0.9);backdrop-filter:blur(16px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
@@ -290,6 +296,24 @@ svg.portfolio-chart{width:100%;height:180px;}
       </div>
     </div>
     <div class="chart-labels" id="chartLabels"></div>
+  </div>
+
+  <!-- MIS ANUNCIOS (from Supabase) -->
+  <div class="section" id="listingsSection">
+    <div class="section-header">
+      <div class="sh-left">
+        <div class="sh-icon" style="background:var(--accent-dim);border:1px solid rgba(212,245,60,0.2);">&#128204;</div>
+        <div>
+          <div class="sh-title">MIS ANUNCIOS</div>
+          <div class="sh-count" id="listingsSectionCount">Cargando...</div>
+        </div>
+      </div>
+      <div class="sh-right">
+        <div class="sh-value" id="listingsSectionVal">—</div>
+        <button class="add-btn" onclick="window.location.href='pple-tcg-vender.html'">+ Publicar</button>
+      </div>
+    </div>
+    <div class="cards-grid" id="listingsGrid"><div class="pcard-loading">Cargando anuncios...</div></div>
   </div>
 
   <!-- RAW SECTION -->
@@ -754,7 +778,64 @@ function addToPortfolio() {
   const total = computeTotals();
   renderGrids();
   drawPortfolioChart(currentPeriod, total);
+
+  // Load "Mis Anuncios" from portfolio table (status = 'for_sale'), with quantity badges
+  await loadListingsSection(user.id);
 })();
+
+async function loadListingsSection(userId) {
+  const grid = document.getElementById('listingsGrid');
+  const countEl = document.getElementById('listingsSectionCount');
+  const valEl = document.getElementById('listingsSectionVal');
+
+  const { data: rows, error } = await sb
+    .from('portfolio')
+    .select('id, card_id, card_name, card_set, card_image, condition, quantity, status')
+    .eq('user_id', userId)
+    .eq('status', 'for_sale')
+    .order('id', { ascending: false });
+
+  if (error || !rows || rows.length === 0) {
+    grid.innerHTML = `<div class="empty-state" onclick="window.location.href='pple-tcg-vender.html'">
+      <div class="es-icon">+</div>
+      <div class="es-title">Sin anuncios activos</div>
+      <div class="es-sub">Publica tu primera carta para vender</div>
+    </div>`;
+    countEl.textContent = '0 anuncios';
+    valEl.textContent = '—';
+    return;
+  }
+
+  const condLabel = { NM:'Near Mint', LP:'Lightly Played', MP:'Mod. Played', PSA10:'PSA 10', PSA9:'PSA 9', PSA8:'PSA 8' };
+  const condClass = { NM:'raw-nm', LP:'raw-lp', MP:'raw-lp', PSA10:'grade-10', PSA9:'grade-9', PSA8:'grade-8' };
+
+  countEl.textContent = `${rows.length} anuncios`;
+  valEl.textContent = '—';
+
+  grid.innerHTML = rows.map(r => {
+    const qty = r.quantity || 1;
+    const cond = r.condition || 'NM';
+    const qtyBadge = qty > 1 ? `<div class="qty-badge">x${qty}</div>` : '';
+    const imgHtml = r.card_image
+      ? `<img src="${r.card_image}" alt="${r.card_name || ''}" onerror="this.parentNode.innerHTML='&#127924;'">`
+      : '&#127924;';
+
+    return `<div class="pcard for-sale">
+      <div class="pcard-img">
+        ${imgHtml}
+        ${qtyBadge}
+        <div class="cond-raw ${condClass[cond] || 'raw-nm'}">${cond}</div>
+      </div>
+      <div class="pcard-body">
+        <div class="pc-name">${r.card_name || '—'}</div>
+        <div class="pc-set">${r.card_set || '—'}</div>
+        <div class="pc-footer">
+          <div class="pc-price" style="font-size:0.78rem;color:var(--text2)">${condLabel[cond] || cond}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 </script>
 </body>
 </html>

@@ -2036,7 +2036,7 @@ async function renderSellers(cardId, basePrice) {
         <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">€${price.toFixed(2)}</div>
         ${cmpHtml}
       </div>
-      <button class="buy-now-btn" onclick="openBuyModal(${JSON.stringify(l)})">Comprar</button>
+      <button class="buy-now-btn" onclick="goToCheckout('${l.id}')">Comprar</button>
     </div>`;
   }).join('');
 }
@@ -2076,6 +2076,10 @@ async function renderBuyOffers(cardId) {
 }
 
 // ---- BUY NOW ----
+function goToCheckout(listingId) {
+  window.location.href = `pple-tcg-checkout.html?listing_id=${listingId}`;
+}
+
 function openBuyModal(listing) {
   curBuyListing = listing;
   curVerif = 'none';
