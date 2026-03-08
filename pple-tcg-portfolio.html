@@ -1020,7 +1020,7 @@ async function reloadPortfolioSections() {
     .from('portfolio')
     .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
     .eq('user_id', currentUserId)
-    .order('card_name', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (!error && rows && rows.length) {
     rows.forEach(r => {
@@ -1064,7 +1064,7 @@ async function reloadPortfolioSections() {
     .from('portfolio')
     .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
     .eq('user_id', user.id)
-    .order('card_name', { ascending: true });
+    .order('created_at', { ascending: false });
 
   if (!error && rows && rows.length) {
     rows.forEach(r => {
@@ -1105,7 +1105,7 @@ async function loadListingsSection(userId) {
     .select('id, card_id, card_name, card_set, card_image, condition, price, display_type')
     .eq('seller_id', userId)
     .eq('sold', false)
-    .order('card_name', { ascending: true });
+    .order('created_at', { ascending: false });
   console.log('LISTINGS ERROR:', error);
   console.log('LISTINGS ROWS:', rows);
 
