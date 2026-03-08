@@ -941,9 +941,8 @@ async function confirmClassification() {
 
     await sb.from('profiles').upsert({
       id: user.id,
-      username: user.email?.split('@')[0] || user.id.slice(0,8),
-      full_name: ''
-    }, { onConflict: 'id', ignoreDuplicates: true });
+      username: user.email?.split('@')[0] || user.id.slice(0,8)
+    }, { onConflict: 'id' });
     console.log('UPSERT profiles OK');
 
     const card = selectedModalCard;
@@ -995,13 +994,23 @@ async function confirmClassification() {
     console.log('ENTRY →', supabaseEntry);
 
     const { error } = await sb.from('portfolio').insert(supabaseEntry);
-    if (error) throw error;
+
+    if (error) {
+      console.error('Error en insert portfolio:', error);
+      alert('Error al guardar en portfolio: ' + (error.message || JSON.stringify(error)));
+      btn.disabled = false;
+      btn.textContent = 'Confirmar';
+      return;
+    }
+
+    console.log('INSERT portfolio OK');
 
     document.getElementById('classifyModal').classList.remove('open');
     await reloadPortfolioSections();
 
   } catch (err) {
     console.error('Error guardando en portfolio:', err);
+    alert('Error inesperado: ' + (err.message || err));
     btn.disabled = false;
     btn.textContent = 'Confirmar';
   }
