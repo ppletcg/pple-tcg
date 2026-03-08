@@ -1027,7 +1027,7 @@ async function reloadPortfolioSections() {
 
   const { data: rows, error } = await sb
     .from('portfolio')
-    .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
+    .select('*')
     .eq('user_id', currentUserId)
     .order('created_at', { ascending: false });
 
@@ -1039,7 +1039,7 @@ async function reloadPortfolioSections() {
         set: r.card_set || '—',
         img: r.card_image || '',
         price: 0,
-        paid: parseFloat(r.price) || 0,
+        paid: parseFloat(r.paid_price) || 0,
         forSale: r.status === 'for_sale'
       };
       if (r.display_type === 'raw') {
@@ -1071,7 +1071,7 @@ async function reloadPortfolioSections() {
   // Load portfolio from Supabase
   const { data: rows, error } = await sb
     .from('portfolio')
-    .select('id, card_name, card_set, card_image, display_type, condition, price, quantity, status')
+    .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -1083,7 +1083,7 @@ async function reloadPortfolioSections() {
         set: r.card_set || '—',
         img: r.card_image || '',
         price: 0,
-        paid: parseFloat(r.price) || 0,
+        paid: parseFloat(r.paid_price) || 0,
         forSale: r.status === 'for_sale'
       };
       if (r.display_type === 'raw') {
