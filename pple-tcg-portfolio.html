@@ -939,6 +939,13 @@ async function confirmClassification() {
     const { data: { user }, error: authErr } = await sb.auth.getUser();
     if (authErr || !user) throw new Error('No autenticado');
 
+    await sb.from('profiles').upsert({
+      id: user.id,
+      username: user.email?.split('@')[0] || user.id.slice(0,8),
+      full_name: ''
+    }, { onConflict: 'id', ignoreDuplicates: true });
+    console.log('UPSERT profiles OK');
+
     const card = selectedModalCard;
     const card_id    = card.id;
     const card_name  = card.name;
@@ -975,40 +982,20 @@ async function confirmClassification() {
     console.log('CONFIRM - user:', user?.id);
     console.log('CONFIRM - condition:', condition);
 
-    // Check for existing row: user_id + card_id + condition
-    const { data: existing } = await sb
-      .from('portfolio')
-      .select('id, quantity')
-      .eq('user_id', user.id)
-      .eq('card_id', card_id)
-      .eq('condition', condition)
-      .maybeSingle();
+    const supabaseEntry = {
+      user_id: user.id,
+      card_id: String(card.id || ''),
+      card_name: card.name || '',
+      card_set: card.set?.name || card.set || '',
+      card_image: card.image ? card.image + '/high.png' : '',
+      display_type: display_type,
+      condition: condition || '',
+      paid_price: price
+    };
+    console.log('ENTRY →', supabaseEntry);
 
-    if (existing) {
-      const { error } = await sb
-        .from('portfolio')
-        .update({ quantity: existing.quantity + 1 })
-        .eq('id', existing.id);
-      if (error) throw error;
-    } else {
-      const row = {
-        user_id: user.id,
-        card_id,
-        card_name,
-        card_set,
-        card_image,
-        display_type,
-        condition,
-        quantity: 1,
-        status: 'owned',
-        price
-      };
-      if (cert !== null) row.cert = cert;
-      if (sealed_status !== null) row.sealed_status = sealed_status;
-
-      const { error } = await sb.from('portfolio').insert(row);
-      if (error) throw error;
-    }
+    const { error } = await sb.from('portfolio').insert(supabaseEntry);
+    if (error) throw error;
 
     document.getElementById('classifyModal').classList.remove('open');
     await reloadPortfolioSections();
