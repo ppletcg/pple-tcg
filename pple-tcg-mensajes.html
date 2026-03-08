@@ -316,6 +316,8 @@ const CONVERSATIONS = [];
 
 let currentConv = null;
 let convFilter = 'all';
+let realtimeChannel = null;
+let presenceState = {};
 
 // ---- RENDER CONVS ----
 function renderConvList(filter='', tab='all') {
@@ -377,6 +379,23 @@ async function openConv(id) {
     conv._loaded = true;
   }
 
+  // Realtime: cancel previous subscription, subscribe to this conversation
+  if (realtimeChannel) { sb.removeChannel(realtimeChannel); realtimeChannel = null; }
+  realtimeChannel = sb.channel('messages-' + id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'conversation_id=eq.' + id }, payload => {
+      const m = payload.new;
+      if (m.sender_id === ME._userId) return;
+      if (currentConv && currentConv.id === id) {
+        currentConv.messages.push({
+          from: m.sender_id,
+          text: m.text,
+          time: new Date(m.created_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+        });
+        renderMessages(currentConv);
+      }
+    })
+    .subscribe();
+
   // Show chat
   document.getElementById('chatEmpty').style.display = 'none';
   const cc = document.getElementById('chatContent');
@@ -386,9 +405,7 @@ async function openConv(id) {
   document.getElementById('chAv').textContent = conv.user[0];
   document.getElementById('chAv').style.background = conv.color;
   document.getElementById('chName').textContent = conv.user;
-  const statusEl = document.getElementById('chStatus');
-  statusEl.textContent = conv.status === 'online' ? 'En línea' : 'Última vez hace 2h';
-  statusEl.className = 'ch-status' + (conv.status === 'offline' ? ' offline' : '');
+  updateCurrentStatus();
 
   // Card context
   document.getElementById('ccImg').src = conv.card.img || '';
@@ -562,6 +579,16 @@ function buyNow() {
   renderMessages(currentConv);
 }
 
+// ---- ONLINE STATUS HELPER ----
+function updateCurrentStatus() {
+  if (!currentConv) return;
+  const isOnline = !!presenceState[currentConv._otherId];
+  const statusEl = document.getElementById('chStatus');
+  if (!statusEl) return;
+  statusEl.textContent = isOnline ? 'En línea' : 'Última vez hace 2h';
+  statusEl.className = 'ch-status' + (isOnline ? '' : ' offline');
+}
+
 // ---- INIT (real data loaded async below) ----
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -600,9 +627,17 @@ function buyNow() {
       });
     }
 
+    // Fetch real usernames for other participants
+    const otherIds = convRows.map(r => r.buyer_id === user.id ? r.seller_id : r.buyer_id);
+    const { data: profiles } = await sb.from('profiles').select('id, username, avatar_url').in('id', otherIds);
+    const profileMap = {};
+    if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
+
     convRows.forEach((row, idx) => {
       const isBuyer = row.buyer_id === user.id;
       const otherId = isBuyer ? row.seller_id : row.buyer_id;
+      const profile = profileMap[otherId] || {};
+      const displayName = profile.username || otherId.slice(0, 8);
       const listing = row.listing || {};
       const lastMsg = lastByConv[row.id];
       const isSlab = listing.display_type === 'slab';
@@ -611,8 +646,9 @@ function buyNow() {
 
       CONVERSATIONS.push({
         id: row.id,
-        user: otherId.slice(0, 8),
-        initial: otherId[0].toUpperCase(),
+        _otherId: otherId,
+        user: displayName,
+        initial: displayName[0].toUpperCase(),
         color: `hsl(${(idx * 67) % 360},40%,35%)`,
         type: isBuyer ? 'compras' : 'ventas',
         card: {
@@ -633,6 +669,22 @@ function buyNow() {
   }
 
   renderConvList();
+
+  // Presence: track current user and watch for others online
+  const presenceChannel = sb.channel('online-users')
+    .on('presence', { event: 'sync' }, () => {
+      const state = presenceChannel.presenceState();
+      presenceState = {};
+      Object.values(state).forEach(presences => {
+        presences.forEach(p => { presenceState[p.user_id] = true; });
+      });
+      updateCurrentStatus();
+    })
+    .subscribe(async status => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({ user_id: ME._userId });
+      }
+    });
 })();
 </script>
 </body>
