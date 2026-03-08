@@ -1129,44 +1129,6 @@ async function loadListingsSection(userId) {
     return;
   }
 
-  // BUG 1 & 2: Group listings by card_id + condition + display_type
-  // to populate RAW and SLABS PSA sections with correct totals
-  const groups = {};
-  rows.forEach(r => {
-    const key = `${r.card_id}||${r.condition}||${r.display_type}`;
-    if (!groups[key]) {
-      groups[key] = {
-        id: r.id,
-        name: r.card_name || '—',
-        set: r.card_set || '—',
-        img: r.card_image || '',
-        price: 0,
-        paid: 0,
-        forSale: true,
-        cond: r.condition || 'NM',
-        grade: r.condition || 'PSA10',
-        cert: '—',
-        qty: 0,
-        display_type: r.display_type
-      };
-    }
-    groups[key].qty += 1;
-    groups[key].price += parseFloat(r.price) || 0;
-  });
-
-  // Populate portfolio arrays (replace any data loaded from portfolio table)
-  portfolio.raw = [];
-  portfolio.psa = [];
-  Object.values(groups).forEach(g => {
-    if (g.display_type === 'raw') portfolio.raw.push(g);
-    else if (g.display_type === 'slab') portfolio.psa.push(g);
-  });
-
-  // Re-render grids and totals with listings data
-  const total = computeTotals();
-  renderGrids();
-  drawPortfolioChart(currentPeriod, total);
-
   // Mis Anuncios section stats and grid
   const totalVal = rows.reduce((s, r) => s + (parseFloat(r.price) || 0), 0);
   countEl.textContent = `${rows.length} anuncios`;
