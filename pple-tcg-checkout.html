@@ -669,7 +669,7 @@ async function confirmPurchase() {
   const protFee = protectionEnabled ? parseFloat((base * 0.03).toFixed(2)) : 0;
   const total = parseFloat((base + shippingPrice + verifFee + protFee).toFixed(2));
 
-  const { error } = await sb.from('orders').insert({
+  const { data: order, error } = await sb.from('orders').insert({
     buyer_id: user.id,
     seller_id: listing.seller_id,
     listing_id: listing.id,
@@ -681,7 +681,7 @@ async function confirmPurchase() {
     buyer_protection_fee: protFee,
     total_price: total,
     status: 'pending_payment'
-  });
+  }).select('id').single();
 
   if (error) {
     btn.textContent = 'CONFIRMAR COMPRA';
@@ -690,7 +690,12 @@ async function confirmPurchase() {
     return;
   }
 
-  window.location.href = 'order-confirmation.html';
+  const { error: updateErr } = await sb.from('listings').update({ sold: true }).eq('id', listing.id);
+  if (updateErr) {
+    console.error('[checkout] Error marcando listing como vendido:', updateErr.message);
+  }
+
+  window.location.href = `order-confirmation.html?order_id=${order.id}`;
 }
 
 init();

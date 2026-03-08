@@ -558,25 +558,72 @@ function submitOffer() {
   renderConvList('', convFilter);
 }
 
-function acceptOffer(btn, amount) {
+async function acceptOffer(btn, amount) {
+  if (!currentConv || !ME._userId) return;
   btn.closest('.msg-offer-actions').style.display = 'none';
   btn.closest('.msg-offer').querySelector('.offer-accepted').classList.add('show');
+
+  const { error: orderErr } = await sb.from('orders').insert({
+    listing_id: currentConv._listingId,
+    buyer_id: currentConv._buyerId,
+    seller_id: currentConv._sellerId,
+    card_id: currentConv._cardId,
+    price: parseFloat(amount),
+    status: 'pending',
+    source: 'offer'
+  });
+
+  if (orderErr) {
+    console.error('[acceptOffer] Error creando orden:', orderErr.message);
+  } else if (currentConv._listingId) {
+    await sb.from('listings').update({ sold: true }).eq('id', currentConv._listingId);
+  }
+
   if (currentConv) {
     currentConv.messages.push({ type:'system', text:`Oferta aceptada · €${amount}` });
     renderMessages(currentConv);
   }
 }
+
 function declineOffer(btn) {
   btn.closest('.msg-offer').style.opacity = '0.4';
   btn.closest('.msg-offer-actions').innerHTML = '<div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--mp)">Oferta rechazada</div>';
 }
 
-function buyNow() {
-  if (!currentConv) return;
-  const msg = `✅ He pulsado Comprar ahora. ¿Puedes confirmar disponibilidad para proceder?`;
+async function buyNow() {
+  if (!currentConv || !ME._userId) return;
+  const rawPrice = currentConv.card.price ? parseFloat(currentConv.card.price.replace('€', '')) : 0;
+
+  const { error: orderErr } = await sb.from('orders').insert({
+    listing_id: currentConv._listingId,
+    buyer_id: currentConv._buyerId,
+    seller_id: currentConv._sellerId,
+    card_id: currentConv._cardId,
+    price: rawPrice,
+    status: 'pending',
+    source: 'buy_now'
+  });
+
+  if (orderErr) {
+    console.error('[buyNow] Error creando orden:', orderErr.message);
+    alert('Error al procesar la compra: ' + orderErr.message);
+    return;
+  }
+
+  if (currentConv._listingId) {
+    await sb.from('listings').update({ sold: true }).eq('id', currentConv._listingId);
+  }
+
+  const msg = `✅ Compra confirmada por €${rawPrice.toFixed(2)}`;
   const now = new Date();
   currentConv.messages.push({ from:'me', text:msg, time:`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}` });
   renderMessages(currentConv);
+
+  await sb.from('messages').insert({
+    conversation_id: currentConv.id,
+    sender_id: ME._userId,
+    text: msg
+  });
 }
 
 // ---- ONLINE STATUS HELPER ----
@@ -606,8 +653,8 @@ function updateCurrentStatus() {
   //                  listings (id, card_name, card_set, card_image, condition, price, display_type)
   const { data: convRows, error } = await sb
     .from('conversations')
-    .select(`id, buyer_id, seller_id, updated_at,
-             listing:listing_id (card_name, card_set, card_image, condition, price, display_type)`)
+    .select(`id, buyer_id, seller_id, listing_id, updated_at,
+             listing:listing_id (id, card_id, card_name, card_set, card_image, condition, price, display_type)`)
     .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
     .order('updated_at', { ascending: false });
 
@@ -647,6 +694,11 @@ function updateCurrentStatus() {
       CONVERSATIONS.push({
         id: row.id,
         _otherId: otherId,
+        _listingId: row.listing_id || null,
+        _cardId: listing.card_id || null,
+        _isBuyer: isBuyer,
+        _buyerId: row.buyer_id,
+        _sellerId: row.seller_id,
         user: displayName,
         initial: displayName[0].toUpperCase(),
         color: `hsl(${(idx * 67) % 360},40%,35%)`,

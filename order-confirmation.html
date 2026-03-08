@@ -40,11 +40,54 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
   <div class="title">PEDIDO CONFIRMADO</div>
   <div class="sub">Tu pedido ha sido registrado correctamente.<br>El vendedor recibirá una notificación y preparará el envío.</div>
   <hr class="divider">
-  <div class="info-row"><span class="info-label">Estado</span><span class="info-val" style="color:var(--nm)">Pendiente de pago</span></div>
+  <div class="info-row" id="rowCarta" style="display:none"><span class="info-label">Carta</span><span class="info-val" id="infoCard">—</span></div>
+  <div class="info-row" id="rowTotal" style="display:none"><span class="info-label">Total</span><span class="info-val" id="infoTotal">—</span></div>
+  <div class="info-row" id="rowVendedor" style="display:none"><span class="info-label">Vendedor</span><span class="info-val" id="infoSeller">—</span></div>
+  <div class="info-row" id="rowEnvio" style="display:none"><span class="info-label">Envío</span><span class="info-val" id="infoShipping">—</span></div>
+  <div class="info-row"><span class="info-label">Estado</span><span class="info-val" style="color:var(--nm)" id="infoStatus">Pendiente de pago</span></div>
   <div class="info-row"><span class="info-label">Tiempo de respuesta</span><span class="info-val">24–48h</span></div>
   <div class="info-row"><span class="info-label">Soporte</span><span class="info-val">soporte@pple.tcg</span></div>
   <a class="btn-primary" href="pple-tcg-seguimiento.html">Ver mis pedidos</a>
   <a class="btn-secondary" href="pple-tcg.html">Seguir comprando</a>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="sb.js"></script>
+<script>
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get('order_id');
+  if (!orderId) return;
+
+  const { data: order } = await sb
+    .from('orders')
+    .select('*, seller:seller_id(username), listing:listing_id(card_name, card_set)')
+    .eq('id', orderId)
+    .single();
+
+  if (!order) return;
+
+  const statusMap = {
+    pending_payment: 'Pendiente de pago',
+    paid: 'Pagado',
+    shipped: 'Enviado',
+    delivered: 'Entregado',
+    pending: 'Pendiente'
+  };
+
+  const cardName = order.listing?.card_name || order.card_id || '—';
+  const cardSet = order.listing?.card_set ? ` · ${order.listing.card_set}` : '';
+
+  document.getElementById('infoCard').textContent = cardName + cardSet;
+  document.getElementById('infoTotal').textContent = order.total_price ? `€${parseFloat(order.total_price).toFixed(2)}` : '—';
+  document.getElementById('infoSeller').textContent = order.seller?.username || '—';
+  document.getElementById('infoShipping').textContent = order.shipping_price ? `€${parseFloat(order.shipping_price).toFixed(2)}` : '—';
+  document.getElementById('infoStatus').textContent = statusMap[order.status] || order.status || 'Pendiente de pago';
+
+  document.getElementById('rowCarta').style.display = 'flex';
+  document.getElementById('rowTotal').style.display = 'flex';
+  document.getElementById('rowVendedor').style.display = 'flex';
+  document.getElementById('rowEnvio').style.display = 'flex';
+})();
+</script>
 </body>
 </html>

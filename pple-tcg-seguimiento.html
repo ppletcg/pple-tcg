@@ -223,20 +223,131 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
   </div>
 </div>
 
-<div class="main" style="display:block;padding:80px 40px;">
-  <div style="text-align:center;max-width:420px;margin:0 auto;">
-    <div style="font-size:3rem;margin-bottom:20px;opacity:0.4;">📦</div>
-    <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:2px;color:var(--text2);margin-bottom:10px;">NO TIENES ENVÍOS ACTIVOS</div>
-    <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.5px;line-height:1.8;">Aquí verás el seguimiento de tus compras y ventas cuando tengas envíos en curso.</div>
+<div class="main" style="display:block;padding:32px 40px 80px;max-width:900px;margin:0 auto;" id="ordersContainer">
+  <div style="text-align:center;padding:60px 0;">
+    <div style="font-size:2rem;margin-bottom:12px;opacity:0.4;">⟳</div>
+    <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);letter-spacing:1px;">Cargando pedidos...</div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="sb.js"></script>
 <script>
+const STATUS_LABEL = {
+  pending_payment: 'Pendiente de pago',
+  pending: 'Pendiente',
+  paid: 'Pagado',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado'
+};
+const STATUS_COLOR = {
+  pending_payment: 'var(--text3)',
+  pending: 'var(--text3)',
+  paid: 'var(--lp)',
+  shipped: 'var(--lp)',
+  delivered: 'var(--nm)',
+  cancelled: 'var(--mp)'
+};
+
+let currentUserId = null;
+
+async function markShipped(orderId) {
+  if (!confirm('¿Marcar este pedido como enviado?')) return;
+  const { error } = await sb.from('orders').update({ status: 'shipped' }).eq('id', orderId);
+  if (error) { alert('Error: ' + error.message); return; }
+  loadOrders();
+}
+
+async function markDelivered(orderId) {
+  if (!confirm('¿Confirmar recepción de este pedido?')) return;
+  const { error } = await sb.from('orders').update({ status: 'delivered' }).eq('id', orderId);
+  if (error) { alert('Error: ' + error.message); return; }
+  loadOrders();
+}
+
+function renderOrders(orders, userId) {
+  const container = document.getElementById('ordersContainer');
+  if (!orders || !orders.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:80px 0;">
+        <div style="font-size:3rem;margin-bottom:20px;opacity:0.4;">📦</div>
+        <div style="font-family:var(--font-display);font-size:1.8rem;letter-spacing:2px;color:var(--text2);margin-bottom:10px;">NO TIENES ENVÍOS ACTIVOS</div>
+        <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text3);letter-spacing:0.5px;line-height:1.8;">Aquí verás el seguimiento de tus compras y ventas cuando tengas envíos en curso.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = orders.map(order => {
+    const isBuyer = order.buyer_id === userId;
+    const role = isBuyer ? 'COMPRA' : 'VENTA';
+    const roleColor = isBuyer ? 'var(--accent)' : 'var(--nm)';
+    const otherUser = isBuyer ? (order.seller?.username || '—') : (order.buyer?.username || '—');
+    const otherRole = isBuyer ? 'Vendedor' : 'Comprador';
+    const cardName = order.listing?.card_name || order.card_id || '—';
+    const cardSet = order.listing?.card_set || '';
+    const cardImage = order.listing?.card_image;
+    const price = order.total_price ? `€${parseFloat(order.total_price).toFixed(2)}` : '—';
+    const status = order.status || 'pending';
+    const statusLabel = STATUS_LABEL[status] || status;
+    const statusColor = STATUS_COLOR[status] || 'var(--text3)';
+    const date = order.created_at ? new Date(order.created_at).toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+
+    const canShip = !isBuyer && status === 'paid';
+    const canDeliver = isBuyer && status === 'shipped';
+
+    return `
+      <div class="sidebar-card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:flex-start;gap:16px;">
+          ${cardImage ? `<img src="${cardImage}" alt="${cardName}" style="width:48px;height:67px;object-fit:contain;border-radius:6px;border:1px solid var(--border);flex-shrink:0;" onerror="this.style.display='none'">` : '<div style="width:48px;height:67px;background:var(--surface2);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🎴</div>'}
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-family:var(--font-mono);font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(212,245,60,0.08);border:1px solid rgba(212,245,60,0.2);color:${roleColor}">${role}</span>
+              <span style="font-family:var(--font-mono);font-size:0.65rem;color:${statusColor};font-weight:600;">● ${statusLabel}</span>
+            </div>
+            <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:0.5px;margin-bottom:2px;">${cardName}</div>
+            ${cardSet ? `<div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text3);margin-bottom:6px;">${cardSet}</div>` : ''}
+            <div class="pkg-row">
+              <span class="pkg-label">${otherRole}</span>
+              <span class="pkg-val">${otherUser}</span>
+            </div>
+            <div class="pkg-row">
+              <span class="pkg-label">Total</span>
+              <span class="pkg-val accent">${price}</span>
+            </div>
+            <div class="pkg-row">
+              <span class="pkg-label">Fecha</span>
+              <span class="pkg-val">${date}</span>
+            </div>
+            ${canShip ? `<button class="action-btn ab-primary" style="margin-top:12px;" onclick="markShipped('${order.id}')">📦 Marcar como enviado</button>` : ''}
+            ${canDeliver ? `<button class="action-btn ab-primary" style="margin-top:12px;" onclick="markDelivered('${order.id}')">✓ Confirmar recepción</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadOrders() {
+  if (!currentUserId) return;
+  const { data: orders, error } = await sb
+    .from('orders')
+    .select('*, listing:listing_id(card_name, card_set, card_image), seller:seller_id(username), buyer:buyer_id(username)')
+    .or(`buyer_id.eq.${currentUserId},seller_id.eq.${currentUserId}`)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[seguimiento] Error cargando órdenes:', error.message);
+    document.getElementById('ordersContainer').innerHTML = `<div style="text-align:center;padding:40px;font-family:var(--font-mono);font-size:0.72rem;color:var(--mp);">Error al cargar pedidos: ${error.message}</div>`;
+    return;
+  }
+  renderOrders(orders, currentUserId);
+}
+
 (async () => {
   const user = await initNav();
-  if (!user) { window.location.href = 'pple-tcg-auth.html'; }
+  if (!user) { window.location.href = 'pple-tcg-auth.html'; return; }
+  currentUserId = user.id;
+  await loadOrders();
 })();
 </script>
 </body>

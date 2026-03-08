@@ -1021,7 +1021,9 @@ async function publishListing() {
     display_type: selectedDisplayType,
     condition: selectedCond,
     price: price,
-    description: description || null
+    description: description || null,
+    psa_cert: null,
+    sold: false
   });
 
   if (error) {
@@ -1046,6 +1048,7 @@ async function publishListing() {
   [1,2,3].forEach(i => document.getElementById(`stab${i}`).classList.remove('active','done'));
   document.getElementById('successScreen').classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(() => { window.location.href = 'pple-tcg.html'; }, 2000);
 }
 
 function resetForm() {

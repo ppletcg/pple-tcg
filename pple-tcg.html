@@ -1740,6 +1740,26 @@ async function loadSet(set) {
     });
     document.getElementById('cardsSub').textContent = `${curCards.length} cartas · precio desc.`;
     setStatus('s-ok', `✅ ${allSets.length} colecciones`);
+
+    // Precargar listings para filtros de condición
+    cardListingsMap = {};
+    const cardIds = curCards.map(c => c.id);
+    if (cardIds.length) {
+      try {
+        const { data: setListings } = await sb.from('listings')
+          .select('card_id, condition, display_type')
+          .in('card_id', cardIds)
+          .eq('sold', false);
+        if (setListings) {
+          setListings.forEach(l => {
+            if (!cardListingsMap[l.card_id]) cardListingsMap[l.card_id] = { conds: [], grades: [] };
+            if (l.display_type === 'raw' && l.condition) cardListingsMap[l.card_id].conds.push(l.condition);
+            if (l.display_type === 'slab' && l.condition) cardListingsMap[l.card_id].grades.push(l.condition);
+          });
+        }
+      } catch(e) { console.warn('[loadSet] Error precargando listings:', e.message); }
+    }
+
     renderPage();
     if (curCards.length) fetchAndUpdateHero(curCards[0], set);
   } catch(e) {
@@ -1773,8 +1793,20 @@ function renderPage() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const isSlab = displayMode === 'slab';
 
-  function getSlabGrade(id) { return null; }
-  function getCardCond(id) { return null; }
+  function getSlabGrade(id) {
+    const grades = cardListingsMap[id]?.grades || [];
+    if (grades.includes('PSA10')) return 'PSA10';
+    if (grades.includes('PSA9')) return 'PSA9';
+    if (grades.includes('PSA8')) return 'PSA8';
+    return null;
+  }
+  function getCardCond(id) {
+    const conds = cardListingsMap[id]?.conds || [];
+    if (conds.includes('NM')) return 'NM';
+    if (conds.includes('LP')) return 'LP';
+    if (conds.includes('MP')) return 'MP';
+    return null;
+  }
 
   let filtered = curCards.filter(card => {
     if (q && !card.name.toLowerCase().includes(q)) return false;
@@ -2053,6 +2085,7 @@ let curVerif = 'none';
 let curSellerTab = 'raw';
 let allListings = [];
 let curBasePrice = null;
+let cardListingsMap = {};
 
 function switchSellerTab(tab, btn) {
   curSellerTab = tab;
