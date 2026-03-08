@@ -624,11 +624,8 @@ function renderGrids() {
         <div class="pcard-body">
           <div class="pc-name">${c.name}</div>
           <div class="pc-set">${c.set}</div>
-          <div class="pc-footer">
-            <div class="pc-price">${fmt(c.price)}</div>
-            <div class="pc-chg ${c.price>c.paid?'chg-up':'chg-down'}">${c.price>c.paid?'▲':'▼'} ${Math.abs(((c.price-c.paid)/c.paid)*100).toFixed(0)}%</div>
-          </div>
-          <div class="pc-paid">Coste: ${fmt(c.paid)}</div>
+          <div class="pc-paid">COSTE ${fmt(c.paid)}</div>
+          <div class="pc-price" style="color:${c.price>c.paid?'#2ed573':c.price<c.paid?'#ff4757':'inherit'}">VALOR ${fmt(c.price)}</div>
         </div>
       </div>`).join('')
     : emptyState('Añade tu primera carta RAW','Escanea o busca manualmente','raw');
@@ -647,11 +644,8 @@ function renderGrids() {
         <div class="pcard-body">
           <div class="pc-name">${c.name}</div>
           <div class="pc-set">${c.set} · #${c.cert}</div>
-          <div class="pc-footer">
-            <div class="pc-price">${fmt(c.price)}</div>
-            <div class="pc-chg ${c.price>c.paid?'chg-up':'chg-down'}">${c.price>c.paid?'▲':'▼'} ${Math.abs(((c.price-c.paid)/c.paid)*100).toFixed(0)}%</div>
-          </div>
-          <div class="pc-paid">Coste: ${fmt(c.paid)}</div>
+          <div class="pc-paid">COSTE ${fmt(c.paid)}</div>
+          <div class="pc-price" style="color:${c.price>c.paid?'#2ed573':c.price<c.paid?'#ff4757':'inherit'}">VALOR ${fmt(c.price)}</div>
         </div>
       </div>`}).join('')
     : emptyState('Añade tu primera slab PSA','Declara el grado y número de certificado','psa');
