@@ -567,7 +567,8 @@ const portfolio = {
   raw: [],
   psa: [],
   sealed: [],
-  wishlist: []
+  wishlist: [],
+  listings: []
 };
 
 // ---- COMPUTE TOTALS ----
@@ -575,11 +576,10 @@ function computeTotals() {
   const rawVal   = portfolio.raw.reduce((s,c) => s+c.price, 0);
   const slabVal  = portfolio.psa.reduce((s,c) => s+c.price, 0);
   const sealVal  = portfolio.sealed.reduce((s,c) => s+c.price*c.qty, 0);
-  const totalVal = rawVal + slabVal + sealVal;
+  const forSaleVal = portfolio.listings.reduce((s,r) => s + (parseFloat(r.price) || 0), 0);
+  const totalVal = rawVal + slabVal + sealVal + forSaleVal;
   const totalCost= [...portfolio.raw,...portfolio.psa].reduce((s,c)=>s+c.paid,0)
                  + portfolio.sealed.reduce((s,c)=>s+c.paid*c.qty,0);
-  const forSaleItems = [...portfolio.raw,...portfolio.psa].filter(c=>c.forSale);
-  const forSaleVal = forSaleItems.reduce((s,c)=>s+c.price,0);
   const pnl = totalVal - totalCost;
 
   document.getElementById('totalValue').textContent  = fmt(totalVal);
@@ -591,7 +591,7 @@ function computeTotals() {
   document.getElementById('sealedValue').textContent = fmt(sealVal);
   document.getElementById('sealedCount').textContent = `${portfolio.sealed.reduce((s,c)=>s+c.qty,0)} items`;
   document.getElementById('forSaleVal').textContent  = fmt(forSaleVal);
-  document.getElementById('forSaleCount').textContent= `${forSaleItems.length} anuncios`;
+  document.getElementById('forSaleCount').textContent= `${portfolio.listings.length} anuncios`;
   document.getElementById('costVal').textContent     = fmt(totalCost);
   const pnlEl = document.getElementById('pnlVal');
   pnlEl.textContent = `${pnl>=0?'▲ +':'▼ '}${fmt(pnl)} P&L`;
@@ -1145,6 +1145,8 @@ async function loadListingsSection(userId) {
   console.log('LISTINGS ROWS:', rows);
 
   if (error || !rows || rows.length === 0) {
+    portfolio.listings = [];
+    computeTotals();
     grid.innerHTML = `<div class="empty-state" onclick="window.location.href='pple-tcg-vender.html'">
       <div class="es-icon">+</div>
       <div class="es-title">Sin anuncios activos</div>
@@ -1154,6 +1156,9 @@ async function loadListingsSection(userId) {
     valEl.textContent = '—';
     return;
   }
+
+  portfolio.listings = rows;
+  computeTotals();
 
   // Mis Anuncios section stats and grid
   const totalVal = rows.reduce((s, r) => s + (parseFloat(r.price) || 0), 0);
