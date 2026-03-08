@@ -127,7 +127,7 @@ svg.portfolio-chart{width:100%;height:180px;}
 .pc-chg{font-family:var(--font-mono);font-size:0.6rem;}
 .chg-up{color:var(--nm);}
 .chg-down{color:var(--mp);}
-.pc-paid{font-family:var(--font-mono);font-size:0.58rem;color:var(--text3);margin-top:3px;}
+.pc-paid{font-family:var(--font-mono);font-size:0.58rem;color:var(--text2);margin-top:3px;}
 
 /* Sealed product grid */
 .sealed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
@@ -624,8 +624,8 @@ function renderGrids() {
         <div class="pcard-body">
           <div class="pc-name">${c.name}</div>
           <div class="pc-set">${c.set}</div>
-          <div class="pc-paid">COSTE ${fmt(c.paid)}</div>
-          <div class="pc-price" style="color:${c.price>c.paid?'#2ed573':c.price<c.paid?'#ff4757':'inherit'}">VALOR ${fmt(c.price)}</div>
+          <div class="pc-paid">${fmt(c.paid)}</div>
+          <div class="pc-price" style="color:${c.priceEstimated?'var(--text3)':'var(--accent)'}">${fmt(c.price)}</div>
         </div>
       </div>`).join('')
     : emptyState('Añade tu primera carta RAW','Escanea o busca manualmente','raw');
@@ -644,8 +644,8 @@ function renderGrids() {
         <div class="pcard-body">
           <div class="pc-name">${c.name}</div>
           <div class="pc-set">${c.set} · #${c.cert}</div>
-          <div class="pc-paid">COSTE ${fmt(c.paid)}</div>
-          <div class="pc-price" style="color:${c.price>c.paid?'#2ed573':c.price<c.paid?'#ff4757':'inherit'}">VALOR ${fmt(c.price)}</div>
+          <div class="pc-paid">${fmt(c.paid)}</div>
+          <div class="pc-price" style="color:${c.priceEstimated?'var(--text3)':'var(--accent)'}">${fmt(c.price)}</div>
         </div>
       </div>`}).join('')
     : emptyState('Añade tu primera slab PSA','Declara el grado y número de certificado','psa');
@@ -1034,6 +1034,17 @@ async function confirmClassification() {
 // ---- INIT (data loaded async by Supabase block below) ----
 let currentUserId = null;
 
+async function fetchCmPrice(cardId) {
+  if (!cardId) return null;
+  try {
+    const r = await fetch(`https://api.tcgdex.net/v2/en/cards/${cardId}`);
+    if (!r.ok) return null;
+    const data = await r.json();
+    const cm = data?.pricing?.cardmarket;
+    return cm?.trend || cm?.avg || cm?.low || null;
+  } catch { return null; }
+}
+
 async function reloadPortfolioSections() {
   if (!currentUserId) return;
   portfolio.raw = [];
@@ -1047,14 +1058,17 @@ async function reloadPortfolioSections() {
     .order('created_at', { ascending: false });
 
   if (!error && rows && rows.length) {
-    rows.forEach(r => {
+    const cmPrices = await Promise.all(rows.map(r => fetchCmPrice(r.card_id)));
+    rows.forEach((r, i) => {
+      const cmPrice = cmPrices[i];
       const dt = (r.display_type || '').toLowerCase();
       const entry = {
         id: r.id,
         name: r.card_name || '—',
         set: r.card_set || '—',
         img: r.card_image || '',
-        price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0,
+        price: cmPrice !== null ? cmPrice : (parseFloat(r.paid_price) || 0),
+        priceEstimated: cmPrice === null,
         paid: parseFloat(r.paid_price) || 0,
         forSale: false
       };
@@ -1063,7 +1077,7 @@ async function reloadPortfolioSections() {
       } else if (dt === 'slab' || dt === 'psa') {
         portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—', qty: r.quantity || 1 });
       } else if (dt === 'sealed') {
-        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: cmPrice !== null ? cmPrice : (parseFloat(r.paid_price) || 0), qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
       }
     });
   } else if (error) {
@@ -1094,14 +1108,17 @@ async function reloadPortfolioSections() {
     .order('created_at', { ascending: false });
 
   if (!error && rows && rows.length) {
-    rows.forEach(r => {
+    const cmPrices = await Promise.all(rows.map(r => fetchCmPrice(r.card_id)));
+    rows.forEach((r, i) => {
+      const cmPrice = cmPrices[i];
       const dt = (r.display_type || '').toLowerCase();
       const entry = {
         id: r.id,
         name: r.card_name || '—',
         set: r.card_set || '—',
         img: r.card_image || '',
-        price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0,
+        price: cmPrice !== null ? cmPrice : (parseFloat(r.paid_price) || 0),
+        priceEstimated: cmPrice === null,
         paid: parseFloat(r.paid_price) || 0,
         forSale: false
       };
@@ -1110,7 +1127,7 @@ async function reloadPortfolioSections() {
       } else if (dt === 'slab' || dt === 'psa') {
         portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—', qty: r.quantity || 1 });
       } else if (dt === 'sealed') {
-        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: cmPrice !== null ? cmPrice : (parseFloat(r.paid_price) || 0), qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
       }
     });
   } else if (error) {
