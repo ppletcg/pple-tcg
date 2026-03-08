@@ -970,6 +970,11 @@ async function confirmClassification() {
       sealed_status = document.getElementById('cmSealedStatus').value; // sealed | opened
     }
 
+    console.log('CONFIRM - modalMode:', modalMode);
+    console.log('CONFIRM - selectedCard:', selectedModalCard);
+    console.log('CONFIRM - user:', user?.id);
+    console.log('CONFIRM - condition:', condition);
+
     // Check for existing row: user_id + card_id + condition
     const { data: existing } = await sb
       .from('portfolio')
