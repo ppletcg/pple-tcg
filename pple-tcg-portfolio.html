@@ -1006,7 +1006,28 @@ async function confirmClassification() {
     console.log('INSERT portfolio OK');
 
     document.getElementById('classifyModal').classList.remove('open');
-    await reloadPortfolioSections();
+
+    // Añadir directamente al objeto local sin query de recarga
+    const localEntry = {
+      id: Date.now(), // ID temporal hasta próxima carga real
+      name: supabaseEntry.card_name,
+      set: supabaseEntry.card_set,
+      img: supabaseEntry.card_image,
+      price: 0,
+      paid: price,
+      forSale: false
+    };
+
+    if (display_type === 'raw') {
+      portfolio.raw.push({ ...localEntry, cond: condition || 'NM', qty: 1 });
+    } else if (display_type === 'slab') {
+      portfolio.psa.push({ ...localEntry, grade: condition || 'PSA10', cert: cert || '—', qty: 1 });
+    } else if (display_type === 'sealed') {
+      portfolio.sealed.push({ img: '📦', name: localEntry.name, set: localEntry.set, type: condition || 'Sellado', price: 0, qty: 1, paid: price, trend: '0%' });
+    }
+
+    computeTotals();
+    renderGrids();
 
   } catch (err) {
     console.error('Error guardando en portfolio:', err);
