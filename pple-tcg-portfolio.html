@@ -583,7 +583,7 @@ function computeTotals() {
   const pnl = totalVal - totalCost;
 
   document.getElementById('totalValue').textContent  = fmt(totalVal);
-  document.getElementById('totalChg').textContent    = `▲ +${((pnl/totalCost)*100).toFixed(1)}% desde coste`;
+  document.getElementById('totalChg').textContent    = totalCost > 0 ? `▲ +${((pnl/totalCost)*100).toFixed(1)}% desde coste` : '—';
   document.getElementById('rawValue').textContent    = fmt(rawVal);
   document.getElementById('rawCount').textContent    = `${portfolio.raw.length} cartas`;
   document.getElementById('slabValue').textContent   = fmt(slabVal);
@@ -1054,23 +1054,26 @@ async function reloadPortfolioSections() {
 
   if (!error && rows && rows.length) {
     rows.forEach(r => {
+      const dt = (r.display_type || '').toLowerCase();
       const entry = {
         id: r.id,
         name: r.card_name || '—',
         set: r.card_set || '—',
         img: r.card_image || '',
-        price: parseFloat(r.paid_price) || 0,
+        price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0,
         paid: parseFloat(r.paid_price) || 0,
-        forSale: r.status === 'for_sale'
+        forSale: false
       };
-      if (r.display_type === 'raw') {
+      if (dt === 'raw') {
         portfolio.raw.push({ ...entry, cond: r.condition || 'NM', qty: r.quantity || 1 });
-      } else if (r.display_type === 'slab') {
-        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—', qty: r.quantity || 1 });
-      } else if (r.display_type === 'sealed') {
-        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
+      } else if (dt === 'slab' || dt === 'psa') {
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—', qty: r.quantity || 1 });
+      } else if (dt === 'sealed') {
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
       }
     });
+  } else if (error) {
+    console.error('Error cargando portfolio:', error);
   }
 
   const total = computeTotals();
@@ -1098,30 +1101,32 @@ async function reloadPortfolioSections() {
 
   if (!error && rows && rows.length) {
     rows.forEach(r => {
+      const dt = (r.display_type || '').toLowerCase();
       const entry = {
         id: r.id,
         name: r.card_name || '—',
         set: r.card_set || '—',
         img: r.card_image || '',
-        price: parseFloat(r.paid_price) || 0,
+        price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0,
         paid: parseFloat(r.paid_price) || 0,
-        forSale: r.status === 'for_sale'
+        forSale: false
       };
-      if (r.display_type === 'raw') {
+      if (dt === 'raw') {
         portfolio.raw.push({ ...entry, cond: r.condition || 'NM', qty: r.quantity || 1 });
-      } else if (r.display_type === 'slab') {
-        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: '—', qty: r.quantity || 1 });
-      } else if (r.display_type === 'sealed') {
-        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: 'Sellado', price: parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
+      } else if (dt === 'slab' || dt === 'psa') {
+        portfolio.psa.push({ ...entry, grade: r.condition || 'PSA10', cert: r.cert || '—', qty: r.quantity || 1 });
+      } else if (dt === 'sealed') {
+        portfolio.sealed.push({ img: '📦', name: entry.name, set: entry.set, type: r.condition || 'Sellado', price: parseFloat(r.current_price) || parseFloat(r.paid_price) || 0, qty: r.quantity || 1, paid: parseFloat(r.paid_price) || 0, trend: '0%' });
       }
     });
+  } else if (error) {
+    console.error('Error cargando portfolio:', error);
   }
 
   const total = computeTotals();
   renderGrids();
   drawPortfolioChart(currentPeriod, total);
 
-  // Load "Mis Anuncios" from portfolio table (status = 'for_sale'), with quantity badges
   await loadListingsSection(user.id);
 })();
 
@@ -1131,10 +1136,10 @@ async function loadListingsSection(userId) {
   const valEl = document.getElementById('listingsSectionVal');
 
   const { data: rows, error } = await sb
-    .from('portfolio')
-    .select('id, card_name, card_set, card_image, condition, paid_price, display_type')
-    .eq('user_id', userId)
-    .eq('status', 'for_sale')
+    .from('listings')
+    .select('id, card_name, card_set, card_image, condition, price, display_type')
+    .eq('seller_id', userId)
+    .eq('sold', false)
     .order('created_at', { ascending: false });
   console.log('LISTINGS ERROR:', error);
   console.log('LISTINGS ROWS:', rows);
@@ -1151,14 +1156,14 @@ async function loadListingsSection(userId) {
   }
 
   // Mis Anuncios section stats and grid
-  const totalVal = rows.reduce((s, r) => s + (parseFloat(r.paid_price) || 0), 0);
+  const totalVal = rows.reduce((s, r) => s + (parseFloat(r.price) || 0), 0);
   countEl.textContent = `${rows.length} anuncios`;
   valEl.textContent = `€${totalVal.toFixed(2)}`;
 
   const condClass = { NM:'raw-nm', LP:'raw-lp', MP:'raw-lp', PSA10:'grade-10', PSA9:'grade-9', PSA8:'grade-8' };
   grid.innerHTML = rows.map(r => {
     const cond = r.condition || 'NM';
-    const price = parseFloat(r.paid_price) || 0;
+    const price = parseFloat(r.price) || 0;
     const imgHtml = r.card_image
       ? `<img src="${r.card_image}" alt="${r.card_name || ''}" onerror="this.parentNode.innerHTML='&#127924;'">`
       : '&#127924;';
